@@ -58,3 +58,11 @@ async def test_my_async_function(result_1):
             assert response["plant_id"] == 1
         assert patch_gather.called  # is actually getting called
         assert patch_gather.call_count == 1  # and only once
+
+
+@pytest.mark.asyncio
+async def test_get_plant_data_length():
+
+    plants_data = await get_plant_data()
+
+    assert len(plants_data) == 51

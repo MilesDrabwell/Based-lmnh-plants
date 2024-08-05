@@ -23,5 +23,15 @@ async def get_plant_data(plants: int = NUMBER_OF_PLANTS) -> list[dict]:
         return plants_data
 
 
+def main():
+    """Main function to run the script"""
+    start_time = time.time()
+    plants_data = asyncio.run(get_plant_data())
+    end_time = time.time()
+    print(
+        f"Retrieved plant data for {NUMBER_OF_PLANTS} plants in {end_time - start_time:.2f} seconds."
+    )
+
+
 if __name__ == "__main__":
-    print(asyncio.run(get_plant_data()))
+    print(main())
