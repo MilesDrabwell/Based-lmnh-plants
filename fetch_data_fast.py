@@ -13,7 +13,7 @@ async def get_plant_data() -> list[dict]:
     async with aiohttp.ClientSession() as session:
 
         tasks = [session.get(url.format(symbol), ssl=False)
-                 for symbol in plant_ids]
+                 for plant_id in plant_ids]
 
         responses = await asyncio.gather(*tasks)
         for response in responses:
