@@ -41,7 +41,7 @@ class MockHTTPResponse:
 
 
 @pytest.mark.asyncio
-async def test_my_async_function():
+async def test_my_async_function(result_1):
     # Mock return value for asyncio.gather
 
     mock_responses = [MockHTTPResponse(result_1)]
