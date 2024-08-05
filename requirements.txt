@@ -2,3 +2,5 @@ aiohttp
 requests
 pytest
 pytest-asyncio
+pytest-cov
+pylint
