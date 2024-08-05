@@ -6,27 +6,13 @@ from fetch_data import get_plant_data
 NUMBER_OF_PLANTS = 50
 
 @pytest.fixture
-def result_1():
+def plant_example():
     """Creating a fixture with an example of a response expected from the request"""
     return {
-        "botanist": {
-            "email": "gertrude.jekyll@lnhm.co.uk",
-            "name": "Gertrude Jekyll",
-            "phone": "001-481-273-3691x127",
-        },
-        "last_watered": "Sun, 04 Aug 2024 13:54:32 GMT",
-        "name": "Venus flytrap",
-        "origin_location": [
-            "33.95015",
-            "-118.03917",
-            "South Whittier",
-            "US",
-            "America/Los_Angeles",
-        ],
         "plant_id": 1,
         "recording_taken": "2024-08-05 11:18:29",
         "soil_moisture": 24.1758099320866,
-        "temperature": 12.0237350427114,
+        "temperature": 12.0237350427114
     }
 
 
@@ -44,8 +30,8 @@ class MockHTTPResponse:
 async def test_async_function_returns_response():
     """Mock the return value for asyncio.gather and test what happens when it's called"""
 
-    mock_responses = [MockHTTPResponse(result_1)]
-    expected_responses = [result_1]
+    mock_responses = [MockHTTPResponse(plant_example)]
+    expected_responses = [plant_example]
 
     with patch(
         "asyncio.gather", AsyncMock(return_value=mock_responses)
