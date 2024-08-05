@@ -1,1 +1,1 @@
-# Welcome to out plants project :)
+# Welcome to our plants project
