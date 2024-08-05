@@ -1,4 +1,4 @@
-#!/Users/linfan/Based-lmnh-plants/.venv/bin/python
+#!/Users/jonathanspence/Documents/CourseWork/Based-lmnh-plants/.venv/bin/python3.12
 # -*- coding: utf-8 -*-
 import re
 import sys

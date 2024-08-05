@@ -1,2 +1,4 @@
 aiohttp
 requests
+pytest
+pytest-asyncio
