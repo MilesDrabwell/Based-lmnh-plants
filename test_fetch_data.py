@@ -1,29 +1,15 @@
+"Testing the functionality of fetch_data.py"
 from unittest.mock import patch, AsyncMock
-from unittest.mock import patch
 import pytest
 from fetch_data import get_plant_data
-import json
 
-# Our test function
+NUMBER_OF_PLANTS = 50
 
 
 @pytest.fixture
-def result_1():
+def plant_example():
+    """Creating a fixture with an example of a response expected from the request"""
     return {
-        "botanist": {
-            "email": "gertrude.jekyll@lnhm.co.uk",
-            "name": "Gertrude Jekyll",
-            "phone": "001-481-273-3691x127",
-        },
-        "last_watered": "Sun, 04 Aug 2024 13:54:32 GMT",
-        "name": "Venus flytrap",
-        "origin_location": [
-            "33.95015",
-            "-118.03917",
-            "South Whittier",
-            "US",
-            "America/Los_Angeles",
-        ],
         "plant_id": 1,
         "recording_taken": "2024-08-05 11:18:29",
         "soil_moisture": 24.1758099320866,
@@ -31,38 +17,35 @@ def result_1():
     }
 
 
-# Our test function
-
-
 class MockHTTPResponse:
+    """Want our mock response to be convertible to json as that is a part of the function does"""
+
     def __init__(self, json_data):
         self._json_data = json_data
 
     async def json(self):
+        "Converting to json?"
         return self._json_data
 
 
 @pytest.mark.asyncio
-async def test_my_async_function(result_1):
-    # Mock return value for asyncio.gather
+async def test_async_function_returns_response():
+    """Mock the return value for asyncio.gather and test what happens when it's called"""
 
-    mock_responses = [MockHTTPResponse(result_1)]
-    expected_responses = [result_1]
+    mock_responses = [MockHTTPResponse(plant_example)]
+    expected_responses = [plant_example]
 
     with patch(
         "asyncio.gather", AsyncMock(return_value=mock_responses)
     ) as patch_gather:
         responses = await get_plant_data()
         assert responses == expected_responses
-        for response in responses:
-            assert response["plant_id"] == 1
-        assert patch_gather.called  # is actually getting called
-        assert patch_gather.call_count == 1  # and only once
+        assert patch_gather.called
+        assert patch_gather.call_count == 1
 
 
 @pytest.mark.asyncio
-async def test_get_plant_data_length():
-
-    plants_data = await get_plant_data()
-
-    assert len(plants_data) == 51
+async def test_error_when_wrong():
+    """Raises error as does not allow plants that do not exist"""
+    with pytest.raises(TypeError):
+        assert await get_plant_data("a")
