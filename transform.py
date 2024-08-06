@@ -1,9 +1,13 @@
 import pymssql
+from pymssql._pymssql import Connection
 from os import getenv
 from datetime import datetime
 
 
 def check_for_error(plant: dict) -> bool:
+    """
+    checks if the current plant dictionary is valid to upload data
+    """
     if plant.get("error"):
         return False
     if not isinstance(plant, dict):
@@ -17,7 +21,10 @@ def check_for_error(plant: dict) -> bool:
     return True
 
 
-def get_connection() -> pymssql.Connection:
+def get_connection() -> Connection:
+    """
+    Establishes a connection to the database
+    """
     return pymssql.connect(host=getenv("DB_HOST"),
                            user=getenv("DB_USER"),
                            password=getenv('DB_PASSWORD'),
@@ -25,7 +32,11 @@ def get_connection() -> pymssql.Connection:
                            port=getenv("DB_PORT"))
 
 
-def get_botanist_mapping(conn: pymssql.Connection) -> dict:
+def get_botanist_mapping(conn: Connection) -> dict:
+    """
+    gets a mapping dictionary from the database, matching botanist names to 
+    their ids
+    """
     with conn.cursor(as_dict=True) as curs:
         curs.execute('SELECT name, botanist_id FROM alpha.botanist')
         rows = curs.fetchall()
@@ -34,6 +45,9 @@ def get_botanist_mapping(conn: pymssql.Connection) -> dict:
 
 
 def initial_botanist_mapping(plants: list[dict]) -> dict:
+    """
+    Creates botanist ids for botanists if there is none in the database
+    """
     id = 1
     mapping = {}
     for plant in plants:
@@ -45,6 +59,9 @@ def initial_botanist_mapping(plants: list[dict]) -> dict:
 
 
 def get_botanist_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple | None:
+    """
+    gets all botanist data needed for the botanist database table
+    """
     if not plant.get("botanist"):
         return None
     if mapping:
@@ -57,7 +74,11 @@ def get_botanist_data(plant: dict, mapping: dict, initial_mapping: dict) -> tupl
     return (id, plant.get("botanist").get("name"), plant.get("botanist").get("email"), plant.get("botanist").get("phone"))
 
 
-def get_origin_mapping(conn: pymssql.Connection) -> dict:
+def get_origin_mapping(conn: Connection) -> dict:
+    """
+    gets a mapping dictionary from the database, matching country_codes to 
+    their ids
+    """
     with conn.cursor(as_dict=True) as curs:
         curs.execute(
             'SELECT country_code, origin_location_id FROM alpha.origin_location')
@@ -67,6 +88,9 @@ def get_origin_mapping(conn: pymssql.Connection) -> dict:
 
 
 def initial_origin_mapping(plants: list[dict]) -> dict:
+    """
+    Creates  ids for origins if there is none in the database
+    """
     id = 1
     mapping = {}
     for plant in plants:
@@ -78,6 +102,9 @@ def initial_origin_mapping(plants: list[dict]) -> dict:
 
 
 def get_origin_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple | None:
+    """
+    gets all origin data needed for the origin_location database table
+    """
     if not plant.get("origin_location"):
         return None
     if mapping:
@@ -92,7 +119,11 @@ def get_origin_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple 
     return (id, float(plant.get('origin_location')[0]), float(plant.get('origin_location')[1]), plant.get('origin_location')[2], continent, city, plant.get('origin_location')[3])
 
 
-def get_license_mapping(conn: pymssql.Connection) -> dict:
+def get_license_mapping(conn: Connection) -> dict:
+    """
+    gets a mapping dictionary from the database, matching license_names to 
+    their ids
+    """
     with conn.cursor(as_dict=True) as curs:
         curs.execute(
             'SELECT license_name, license_id FROM alpha.license')
@@ -102,6 +133,9 @@ def get_license_mapping(conn: pymssql.Connection) -> dict:
 
 
 def get_license_data(plant: dict, mapping: dict) -> tuple | None:
+    """
+    gets all license data needed for the license database table
+    """
     if not plant.get("images"):
         return None
     if mapping:
@@ -112,7 +146,7 @@ def get_license_data(plant: dict, mapping: dict) -> tuple | None:
     return (id, plant.get("images").get("license_name"), plant.get("images").get("license_url"))
 
 
-def get_images_mapping(conn: pymssql.Connection) -> dict:
+def get_images_mapping(conn: Connection) -> dict:
     with conn.cursor(as_dict=True) as curs:
         curs.execute(
             'SELECT regular_url, image_id FROM alpha.images')
@@ -150,7 +184,7 @@ def get_images_data(plant: dict, mapping: dict, initial_mapping: dict, license_m
     return (id, license_id, plant.get("images").get("thumbnail_url"), plant.get("images").get("small_url"), plant.get("images").get("medium_url"), plant.get("images").get("regular_url", plant.get("images").get("original_url")))
 
 
-def get_plant_mapping(conn: pymssql.Connection) -> dict:
+def get_plant_mapping(conn: Connection) -> dict:
     with conn.cursor(as_dict=True) as curs:
         curs.execute(
             'SELECT plant_name, plant_id FROM alpha.plant')
@@ -211,7 +245,7 @@ def get_health_data(plant: dict) -> tuple:
     return (plant.get("plant_id"), recording_time, soil_moisture, temperature, last_watered)
 
 
-def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tuple]]:
+def get_table_data(plants: list[dict], conn: Connection) -> dict[list[tuple]]:
     db_botanist_mapping = get_botanist_mapping(conn)
     if not db_botanist_mapping:
         init_botanist_mapping = initial_botanist_mapping(plants)
@@ -262,6 +296,3 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
             plant_health = get_health_data(plant)
             tables_data["plant_health"].append(plant_health)
     return tables_data
-
-
-if __name__ == "__main__":
