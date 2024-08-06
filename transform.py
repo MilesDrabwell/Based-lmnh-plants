@@ -1,31 +1,6 @@
 import pymssql
 from os import getenv
 from datetime import datetime
-from ast import literal_eval
-import time
-import asyncio
-import aiohttp
-
-
-URL = "https://data-eng-plants-api.herokuapp.com/plants/{}"
-PLANT_IDS = list(range(51))
-
-
-async def get_plant_data_from_api(plant_ids: list) -> list[dict]:
-    """Asynchronous function to retrieve the plant data for multiple plants"""
-    if not isinstance(plant_ids, list):
-        raise TypeError
-    plants_data = []
-    async with aiohttp.ClientSession() as session:
-        tasks = [session.get(URL.format(plant_id), ssl=False)
-                 for plant_id in plant_ids]
-        responses = await asyncio.gather(*tasks)
-
-        for response in responses:
-            plant_data = await response.json(content_type=None)
-            plants_data.append(plant_data)
-
-    return plants_data
 
 
 def check_for_error(plant: dict) -> bool:
@@ -290,9 +265,3 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
 
 
 if __name__ == "__main__":
-    conn = get_connection()
-    plants = asyncio.run(get_plant_data_from_api(PLANT_IDS))
-    start_time = time.time()
-    print(get_table_data(plants, conn))
-    end_time = time.time()
-    print(end_time-start_time)
