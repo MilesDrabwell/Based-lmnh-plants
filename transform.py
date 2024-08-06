@@ -25,30 +25,61 @@ def get_connection() -> pymssql.Connection:
 
 def get_botanist_mapping(conn: pymssql.Connection) -> dict:
     with conn.cursor(as_dict=True) as curs:
-        curs.execute("ALTER USER[alpha] WITH DEFAULT_SCHEMA=[based]")
-        curs.execute('SELECT name, botanist_id FROM botanist')
+        curs.execute('SELECT name, botanist_id FROM alpha.botanist')
         rows = curs.fetchall()
         # logging.info('Created a mapping for "botanist" values')
     return {row["name"]: row["botanist_id"] for row in rows}
 
 
-def get_plant_data(plant: dict) -> tuple:
-    pass
+def initial_botanist_mapping(plants: list[dict]) -> dict:
+    id = 1
+    mapping = {}
+    for plant in plants:
+        if not mapping.get(plant["botanist"]["name"]):
+            mapping[plant["botanist"]["name"]] = id
+            id += 1
+    return mapping
 
 
-def get_botanist_data(plant: dict, conn: pymssql.Connection) -> tuple:
-    existing_botatnists = get_botanist_mapping(conn)
-    try:
-        id = existing_botatnists[plant['botanist']]
-    except KeyError:
-        try:
-            id = max(existing_botatnists.values()) + 1
-        except ValueError:
-            id = 1
+def get_botanist_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple | None:
+    if mapping:
+        id = mapping.get(plant["name"])
+        if id:
+            return None
+        id = max(mapping.values()) + 1
+    else:
+        id = initial_mapping.get(plant['botanist']["name"])
+    return (id, plant.get("name"), plant.get("email"), plant.get("phone"))
 
 
-def get_origin_data(plant: dict) -> tuple:
-    pass
+def get_origin_mapping(conn: pymssql.Connection) -> dict:
+    with conn.cursor(as_dict=True) as curs:
+        curs.execute(
+            'SELECT country_code, origin_location_id FROM alpha.origin_location')
+        rows = curs.fetchall()
+        # logging.info('Created a mapping for "origin" values')
+    return {row["country_code"]: row["origin_location_id"] for row in rows}
+
+
+def initial_origin_mapping(plants: list[dict]) -> dict:
+    id = 1
+    mapping = {}
+    for plant in plants:
+        if not mapping.get(plant["origin_location"]["country_code"]):
+            mapping[plant["origin_location"]["country_code"]] = id
+            id += 1
+    return mapping
+
+
+def get_origin_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple | None:
+    if mapping:
+        id = mapping.get(plant['country_code'])
+        if id:
+            return None
+        id = max(mapping.values()) + 1
+    else:
+        id = initial_mapping.get(plant['botanist']["name"])
+    return (id, plant.get("name"), plant.get("email"), plant.get("phone"))
 
 
 def get_images_data(plant: dict) -> tuple:
@@ -59,11 +90,15 @@ def get_license_data(plant: dict) -> tuple:
     pass
 
 
+def get_plant_data(plant: dict) -> tuple:
+    pass
+
+
 def get_health_data(plant: dict) -> tuple:
     pass
 
 
-def main(plants: list[dict]) -> dict[list[tuple]]:
+def get_table_data(plants: list[dict]) -> dict[list[tuple]]:
     pass
 
 
