@@ -1,6 +1,6 @@
 """Python script that will load the transformed data to the RDS"""
 from os import getenv
-from pymssql import connect, executemany
+from pymssql import connect, execute
 # from transform import get_table_data
 
 #get_Table_data is the main function that returns a dict of the format:
@@ -78,17 +78,23 @@ def load(all_plants: dict[list[tuple]], connection: pymssql.Connection):
     """adding all the data obtained to our RDS"""
     with connection.cursor() as cur:
         if all_plants.get('license'):
-            cur.execute(cur, insert_license(), all_plants['license'])
+            for license in all_plants['license']:
+                cur.execute(cur, insert_license(), license)
         if all_plants.get('images'):
-            cur.execute(cur, insert_images(),  all_plants['images'])
+            for image in all_plants['images']:
+                cur.execute(cur, insert_images(),  image)
         if all_plants.get('origin_location'):
-            cur.execute(cur, insert_origin_location(),  all_plants['origin_location'])
+            for location in all_plants['origin_location']:
+                cur.execute(cur, insert_origin_location(),  location)
         if all_plants.get('botanist'):
-            cur.execute(cur, insert_botanist(),  all_plants['botanist'])
+            for botanist in all_plants['botanist']:
+                cur.execute(cur, insert_botanist(), botanist)
         if all_plants.get('plant_health'):
-            cur.execute(cur, insert_plant_health(),  all_plants['plant_health'])
+            for health in all_plants['plant_health']:
+                cur.execute(cur, insert_plant_health(), health)
         if all_plants.get('plant'):
-            cur.execute(cur, insert_plant(),  all_plants['plant'])
+            for plant in all_plants['plant']:
+                cur.execute(cur, insert_plant(), plant)
         cur.commit()
             
             
