@@ -131,7 +131,7 @@ def initial_images_mapping(plants: list[dict]) -> dict:
     return mapping
 
 
-def get_images_data(plant: dict, mapping: dict, initial_mapping: dict, license_mapping: dict, initial_license_mapping: dict) -> tuple | None:
+def get_images_data(plant: dict, mapping: dict, initial_mapping: dict, license_mapping: dict) -> tuple | None:
     if not plant.get("images"):
         return None
     if mapping:
@@ -143,8 +143,7 @@ def get_images_data(plant: dict, mapping: dict, initial_mapping: dict, license_m
         id = initial_mapping.get(plant["images"]["regular_url"])
     license_id = license_mapping.get(plant["images"]["license_name"])
     if not license_id:
-        license_id = initial_license_mapping.get(
-            plant["images"]["license_name"])
+        license_id = plant.get("images").get("license")
     return (id, license_id, plant.get("images").get("thumbnail_url"), plant.get("images").get("small_url"), plant.get("images").get("medium_url"), plant.get("images").get("regular_url", plant.get("images").get("original_url")))
 
 
@@ -244,7 +243,7 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
             if license_data:
                 tables_data["license"].append(license_data)
             images_data = get_images_data(
-                plant, db_images_mapping, initial_images_mapping, db_license_mapping, initial_license_mapping)
+                plant, db_images_mapping, initial_images_mapping, db_license_mapping)
             if images_data:
                 tables_data["images"].append(images_data)
             plant_data = get_plant_data(plant, db_plant_mapping, db_origin_mapping,
