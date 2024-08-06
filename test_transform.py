@@ -135,23 +135,7 @@ class TestPlants:
 
 
 class TestPlantHealth:
-    def test_get_images_data_image_not_exists(self, test_database):
-        assert get_health_data(
-            {}) == None
-
-    def test_get_image_data_image_exists(self, test_database):
-        assert get_health_data(
-            {}, test_database, {}, {"images": {'license_name': 'Universal'}}) == None
-
-    def test_get_image_data_image_new_empty_db(self):
+    def test_get_plant_health_data_exists(self):
         return_value = get_health_data(
-            {})
+            {'plant_id': 1, 'recording_taken': '2024-08-06 12:56:07', 'soil_moisture': 2.1, 'temperature': 2.2, 'last_watered': '2024-08-06 12:56:07'})
         assert isinstance(return_value, tuple) == True
-        assert return_value[0] == 452
-
-    def test_get_image_data_image_new_image(self):
-        return_value = get_health_data(
-            {})
-        print(return_value)
-        assert isinstance(return_value, tuple) == True
-        assert return_value[0] == 453

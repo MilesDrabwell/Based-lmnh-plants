@@ -265,3 +265,4 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
 
 
 if __name__ == "__main__":
+    ...
