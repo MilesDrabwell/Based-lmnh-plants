@@ -1,5 +1,5 @@
 import pytest
-from transform import check_for_error, get_botanist_data, get_origin_data, get_license_data, get_images_data, get_plant_data
+from transform import check_for_error, get_botanist_data, get_origin_data, get_license_data, get_images_data, get_plant_data, get_health_data
 
 
 @pytest.fixture
@@ -124,8 +124,18 @@ class TestPlants:
         assert isinstance(return_value, tuple) == True
         assert return_value[0] == 3
 
-    # def test_get_plant_data_plant_new_other_ids(self):
-    #     return_value = get_plant_data(
-    #         {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': 'GB'}, {'plant_id': 2}, {'GB': 2}, {}, {}, {}, {}, {})
-    #     assert isinstance(return_value, tuple) == True
-    #     assert return_value[0] == 3
+    def test_get_plant_data_plant_new_other_ids(self):
+        return_value = get_plant_data(
+            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': [0, 0, 0, 'GB'], 'botanist': {'name': 'Barbara'}, 'images': {'regular_url': 'Disney.com'}}, {'plant_id': 2}, {'GB': 10}, {}, {'Barbara': 20}, {}, {'Disney.com': 452}, {})
+        print()
+        assert isinstance(return_value, tuple) == True
+        assert return_value[5] == 10
+        assert return_value[3] == 20
+        assert return_value[4] == 452
+
+
+class TestPlantHealth:
+    def test_get_plant_health_data_exists(self):
+        return_value = get_health_data(
+            {'plant_id': 1, 'recording_taken': '2024-08-06 12:56:07', 'soil_moisture': 2.1, 'temperature': 2.2, 'last_watered': '2024-08-06 12:56:07'})
+        assert isinstance(return_value, tuple) == True

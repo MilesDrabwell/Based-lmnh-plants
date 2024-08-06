@@ -296,3 +296,6 @@ def get_table_data(plants: list[dict], conn: Connection) -> dict[list[tuple]]:
             plant_health = get_health_data(plant)
             tables_data["plant_health"].append(plant_health)
     return tables_data
+
+
+if __name__ == "__main__":
