@@ -1,7 +1,7 @@
 "Testing the functionality of fetch_data.py"
 from unittest.mock import patch, AsyncMock
 import pytest
-from fetch_data import get_plant_data
+from fetch_data import get_plant_data, new_plant_ids
 
 NUMBER_OF_PLANTS = 50
 
@@ -23,29 +23,50 @@ class MockHTTPResponse:
     def __init__(self, json_data):
         self._json_data = json_data
 
-    async def json(self):
+    async def json(self, content_type=None):
         "Converting to json?"
         return self._json_data
 
 
-@pytest.mark.asyncio
-async def test_async_function_returns_response():
-    """Mock the return value for asyncio.gather and test what happens when it's called"""
+class TestPlantData:
+    @pytest.mark.asyncio
+    async def test_async_function_returns_response(self, plant_example):
+        """Mock the return value for asyncio.gather and test what happens when it's called"""
+        plant_ids = list(range(NUMBER_OF_PLANTS))
+        mock_responses = [MockHTTPResponse(plant_example)]*NUMBER_OF_PLANTS
 
-    mock_responses = [MockHTTPResponse(plant_example)]
-    expected_responses = [plant_example]
+        with patch(
+            "asyncio.gather", AsyncMock(return_value=mock_responses)
+        ) as patch_gather:
+            responses = await get_plant_data(plant_ids)
+            assert len(responses) == NUMBER_OF_PLANTS
+            assert patch_gather.called
+            assert patch_gather.call_count == 1
 
-    with patch(
-        "asyncio.gather", AsyncMock(return_value=mock_responses)
-    ) as patch_gather:
-        responses = await get_plant_data()
-        assert responses == expected_responses
-        assert patch_gather.called
-        assert patch_gather.call_count == 1
+    @pytest.mark.asyncio
+    async def test_error_when_wrong(self):
+        """Raises error as does not allow plants that do not exist"""
+        mock_responses = [MockHTTPResponse(plant_example)]*20
+        with patch(
+            "asyncio.gather", AsyncMock(return_value=mock_responses)
+        ) as patch_gather:
+            with pytest.raises(TypeError):
+                assert await get_plant_data("a")
+                assert await get_plant_data({'plant_id'})
+                assert await get_plant_data(2)
 
 
-@pytest.mark.asyncio
-async def test_error_when_wrong():
-    """Raises error as does not allow plants that do not exist"""
-    with pytest.raises(TypeError):
-        assert await get_plant_data("a")
+class TestNewPlantIds:
+    def test_plant_ids_returned(self):
+        plant_data = [{'plant_id': 1}, {'plant_id': 2, 'error': 'sensor not found'},
+                      {'plant_id': 3}, {'plant_id': 4}, {'plant_id': 5}]
+        return_data = [1, 2, 3, 4, 5, 6]
+        assert new_plant_ids(plant_data) == return_data
+
+    def test_plant_ids_remove_plant(self):
+        plant_data = [{'plant_id': 1}, {'plant_id': 2, 'error': 'plant not found'},
+                      {'plant_id': 3}, {'plant_id': 4}, {'plant_id': 5}]
+
+        return_data = [1, 3, 4, 5, 6]
+
+        assert new_plant_ids(plant_data) == return_data
