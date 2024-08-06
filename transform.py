@@ -299,3 +299,4 @@ def get_table_data(plants: list[dict], conn: Connection) -> dict[list[tuple]]:
 
 
 if __name__ == "__main__":
+    ...
