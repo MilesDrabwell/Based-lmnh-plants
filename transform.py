@@ -99,28 +99,14 @@ def get_license_mapping(conn: pymssql.Connection) -> dict:
     return {row["license_name"]: row["license_id"] for row in rows}
 
 
-def initial_license_mapping(plants: list[dict]) -> dict:
-    id = 1
-    mapping = {}
-    for plant in plants:
-        if not plant.get("images"):
-            continue
-        if not mapping.get(plant["images"]["license_name"]):
-            mapping[plant["images"]["license_name"]] = id
-            id += 1
-    return mapping
-
-
-def get_license_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple | None:
+def get_license_data(plant: dict, mapping: dict) -> tuple | None:
     if not plant.get("images"):
         return None
     if mapping:
         id = mapping.get(plant["images"]["license_name"])
         if id:
             return None
-        id = max(mapping.values()) + 1
-    else:
-        id = initial_mapping.get(plant["images"]["license_name"])
+    id = plant.get("images").get("license")
     return (id, plant.get("images").get("license_name"), plant.get("images").get("license_url"))
 
 
@@ -229,10 +215,6 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
     else:
         initial_origin_mapping = None
     db_license_mapping = get_license_mapping(conn)
-    if not db_license_mapping:
-        initial_license_mapping = initial_license_mapping(plants)
-    else:
-        initial_license_mapping = None
     db_images_mapping = get_images_mapping(conn)
     if not db_images_mapping:
         initial_images_mapping = initial_images_mapping(plants)
@@ -258,7 +240,7 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
             if origin_location_data:
                 tables_data["origin_location"].append(origin_location_data)
             license_data = get_license_data(
-                plant, db_license_mapping, initial_license_mapping)
+                plant, db_license_mapping)
             if license_data:
                 tables_data["license"].append(license_data)
             images_data = get_images_data(
