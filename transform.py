@@ -12,6 +12,8 @@ def check_for_error(plant: dict) -> bool:
         return False
     if plant.get("plant_id") < 0:
         return False
+    if not plant.get("recording_taken"):
+        return False
     return True
 
 
@@ -163,7 +165,7 @@ def get_images_data(plant: dict, mapping: dict, initial_mapping: dict, license_m
 def get_plant_mapping(conn: pymssql.Connection) -> dict:
     with conn.cursor(as_dict=True) as curs:
         curs.execute(
-            'SELECT * FROM alpha.plant')
+            'SELECT plant_name, plant_id FROM alpha.plant')
         rows = curs.fetchall()
         # logging.info('Created a mapping for "license" values')
     return {row["plant_name"]: row["plant_id"] for row in rows}
@@ -216,8 +218,61 @@ def get_health_data(plant: dict) -> tuple:
 
 
 def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tuple]]:
-    pass
+    db_botanist_mapping = get_botanist_mapping(conn)
+    if not db_botanist_mapping:
+        initial_botanist_mapping = initial_botanist_mapping(plants)
+    else:
+        initial_botanist_mapping = None
+    db_origin_mapping = get_origin_mapping(conn)
+    if not db_origin_mapping:
+        initial_origin_mapping = initial_origin_mapping(plants)
+    else:
+        initial_origin_mapping = None
+    db_license_mapping = get_license_mapping(conn)
+    if not db_license_mapping:
+        initial_license_mapping = initial_license_mapping(plants)
+    else:
+        initial_license_mapping = None
+    db_images_mapping = get_images_mapping(conn)
+    if not db_images_mapping:
+        initial_images_mapping = initial_images_mapping(plants)
+    else:
+        initial_images_mapping = None
+    db_plant_mapping = get_plant_mapping(conn)
+    tables_data = {
+        "botanist": [],
+        "origin_location": [],
+        "license": [],
+        "images": [],
+        "plant": [],
+        "plant_health": []
+    }
+    for plant in plants:
+        if check_for_error(plant):
+            botanist_data = get_botanist_data(
+                plant, db_botanist_mapping, initial_botanist_mapping)
+            if botanist_data:
+                tables_data["botanist"].append(botanist_data)
+            origin_location_data = get_origin_data(
+                plant, db_origin_mapping, initial_origin_mapping)
+            if origin_location_data:
+                tables_data["origin_location"].append(origin_location_data)
+            license_data = get_license_data(
+                plant, db_license_mapping, initial_license_mapping)
+            if license_data:
+                tables_data["license"].append(license_data)
+            images_data = get_images_data(
+                plant, db_images_mapping, initial_images_mapping, db_license_mapping, initial_license_mapping)
+            if images_data:
+                tables_data["images"].append(images_data)
+            plant_data = get_plant_data(plant, db_plant_mapping, db_origin_mapping,
+                                        initial_origin_mapping, db_botanist_mapping, initial_botanist_mapping, db_images_mapping, initial_images_mapping)
+            if plant_data:
+                tables_data["plant"].append(plant_data)
+            plant_health = get_health_data(plant)
+            tables_data["plant_health"].append(plant_health)
+    return tables_data
 
 
 if __name__ == "__main__":
-    pass
+    conn = get_connection()
