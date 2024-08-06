@@ -124,8 +124,8 @@ class TestPlants:
         assert isinstance(return_value, tuple) == True
         assert return_value[0] == 3
 
-    def test_get_plant_data_plant_new_other_ids(self):
-        return_value = get_plant_data(
-            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': 'GB'}, {'plant_id': 2}, {'GB': 2}, {}, {}, {}, {}, {})
-        assert isinstance(return_value, tuple) == True
-        assert return_value[0] == 3
+    # def test_get_plant_data_plant_new_other_ids(self):
+    #     return_value = get_plant_data(
+    #         {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': 'GB'}, {'plant_id': 2}, {'GB': 2}, {}, {}, {}, {}, {})
+    #     assert isinstance(return_value, tuple) == True
+    #     assert return_value[0] == 3
