@@ -3,5 +3,7 @@
 venv
 .DS_Store
 .vscode
-_pycache__
+__pycache__
+.pytest_cache
+.coverage
 
