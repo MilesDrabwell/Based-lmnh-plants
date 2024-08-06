@@ -78,23 +78,17 @@ def load(all_plants: dict[list[tuple]], connection: pymssql.Connection):
     """adding all the data obtained to our RDS"""
     with connection.cursor() as cur:
         if all_plants.get('license'):
-            for license in all_plants['license']:
-                cur.execute(cur, insert_license(), license)
+            cur.executemany(cur, insert_license(), all_plants['license'])
         if all_plants.get('images'):
-            for image in all_plants['images']:
-                cur.execute(cur, insert_images(),  image)
+            cur.executemany(cur, insert_images(), all_plants['images'])
         if all_plants.get('origin_location'):
-            for location in all_plants['origin_location']:
-                cur.execute(cur, insert_origin_location(),  location)
+            cur.executemany(cur, insert_origin_location(), all_plants['origin_location'])
         if all_plants.get('botanist'):
-            for botanist in all_plants['botanist']:
-                cur.execute(cur, insert_botanist(), botanist)
+            cur.executemany(cur, insert_botanist(), all_plants['botanist'])
         if all_plants.get('plant_health'):
-            for health in all_plants['plant_health']:
-                cur.execute(cur, insert_plant_health(), health)
+            cur.executemany(cur, insert_plant_health(), all_plants['plant_health'])
         if all_plants.get('plant'):
-            for plant in all_plants['plant']:
-                cur.execute(cur, insert_plant(), plant)
+            cur.executemany(cur, insert_plant(), all_plants['plant'])
         cur.commit()
             
             
