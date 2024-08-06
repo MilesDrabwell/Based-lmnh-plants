@@ -11,12 +11,9 @@ PLANT_IDS = list(range(51))
 
 async def get_plant_data(plant_ids: list) -> list[dict]:
     """Asynchronous function to retrieve the plant data for multiple plants"""
-    if not isinstance(plant_ids, list):
-        raise TypeError
     plants_data = []
     async with aiohttp.ClientSession() as session:
-        tasks = [session.get(URL.format(plant_id), ssl=False)
-                 for plant_id in plant_ids]
+        tasks = [session.get(URL.format(plant_id), ssl=False) for plant_id in plant_ids]
         responses = await asyncio.gather(*tasks)
 
         for response in responses:
@@ -26,7 +23,7 @@ async def get_plant_data(plant_ids: list) -> list[dict]:
     return plants_data
 
 
-def new_plant_ids(plants_data: list[dict]) -> list[int]:
+def new_plant_ids(plants_data: list[dict]):
     """Function to generate plant IDs for the next iteration"""
     plant_ids = []
     for plant_data in plants_data:
@@ -44,7 +41,6 @@ async def main() -> None:
         plants_data = await get_plant_data(plant_ids)
         plant_ids = new_plant_ids(plants_data)
         end_time = time.time()
-        print(plants_data[0])
         print(f"API calls took {end_time - start_time} seconds")
         # await asyncio.sleep(1)
 
