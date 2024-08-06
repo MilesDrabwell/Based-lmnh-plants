@@ -44,6 +44,7 @@ async def main() -> None:
         plants_data = await get_plant_data(plant_ids)
         plant_ids = new_plant_ids(plants_data)
         end_time = time.time()
+        print(plants_data[0])
         print(f"API calls took {end_time - start_time} seconds")
         # await asyncio.sleep(1)
 
