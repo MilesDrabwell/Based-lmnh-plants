@@ -1,6 +1,31 @@
 import pymssql
 from os import getenv
 from datetime import datetime
+from ast import literal_eval
+import time
+import asyncio
+import aiohttp
+
+
+URL = "https://data-eng-plants-api.herokuapp.com/plants/{}"
+PLANT_IDS = list(range(51))
+
+
+async def get_plant_data_from_api(plant_ids: list) -> list[dict]:
+    """Asynchronous function to retrieve the plant data for multiple plants"""
+    if not isinstance(plant_ids, list):
+        raise TypeError
+    plants_data = []
+    async with aiohttp.ClientSession() as session:
+        tasks = [session.get(URL.format(plant_id), ssl=False)
+                 for plant_id in plant_ids]
+        responses = await asyncio.gather(*tasks)
+
+        for response in responses:
+            plant_data = await response.json(content_type=None)
+            plants_data.append(plant_data)
+
+    return plants_data
 
 
 def check_for_error(plant: dict) -> bool:
@@ -37,9 +62,10 @@ def initial_botanist_mapping(plants: list[dict]) -> dict:
     id = 1
     mapping = {}
     for plant in plants:
-        if not mapping.get(plant["botanist"]["name"]):
-            mapping[plant["botanist"]["name"]] = id
-            id += 1
+        if check_for_error(plant):
+            if not mapping.get(plant["botanist"]["name"]):
+                mapping[plant["botanist"]["name"]] = id
+                id += 1
     return mapping
 
 
@@ -69,9 +95,10 @@ def initial_origin_mapping(plants: list[dict]) -> dict:
     id = 1
     mapping = {}
     for plant in plants:
-        if not mapping.get(plant["origin_location"][3]):
-            mapping[plant["origin_location"][3]] = id
-            id += 1
+        if check_for_error(plant):
+            if not mapping.get(plant["origin_location"][3]):
+                mapping[plant["origin_location"][3]] = id
+                id += 1
     return mapping
 
 
@@ -123,11 +150,12 @@ def initial_images_mapping(plants: list[dict]) -> dict:
     id = 1
     mapping = {}
     for plant in plants:
-        if not plant.get("images"):
-            continue
-        if not mapping.get(plant["images"]["regular_url"]):
-            mapping[plant["images"]["regular_url"]] = id
-            id += 1
+        if check_for_error(plant):
+            if not plant.get("images"):
+                continue
+            if not mapping.get(plant["images"]["regular_url"]):
+                mapping[plant["images"]["regular_url"]] = id
+                id += 1
     return mapping
 
 
@@ -183,7 +211,13 @@ def get_plant_data(plant: dict, mapping: dict, origin_mapping: dict, initial_ori
                 plant["images"]["regular_url"])
     else:
         image_id = None
-    return (id, plant.get("name"), plant.get("scientific_name")[0], botanist_id, image_id, origin_location_id)
+
+    if plant.get("scientific_name"):
+        scientific_name = plant.get("scientific_name")[0]
+    else:
+        scientific_name = None
+
+    return (id, plant.get("name"), scientific_name, botanist_id, image_id, origin_location_id)
 
 
 def get_health_data(plant: dict) -> tuple:
@@ -205,20 +239,20 @@ def get_health_data(plant: dict) -> tuple:
 def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tuple]]:
     db_botanist_mapping = get_botanist_mapping(conn)
     if not db_botanist_mapping:
-        initial_botanist_mapping = initial_botanist_mapping(plants)
+        init_botanist_mapping = initial_botanist_mapping(plants)
     else:
-        initial_botanist_mapping = None
+        init_botanist_mapping = None
     db_origin_mapping = get_origin_mapping(conn)
     if not db_origin_mapping:
-        initial_origin_mapping = initial_origin_mapping(plants)
+        init_origin_mapping = initial_origin_mapping(plants)
     else:
-        initial_origin_mapping = None
+        init_origin_mapping = None
     db_license_mapping = get_license_mapping(conn)
     db_images_mapping = get_images_mapping(conn)
     if not db_images_mapping:
-        initial_images_mapping = initial_images_mapping(plants)
+        init_images_mapping = initial_images_mapping(plants)
     else:
-        initial_images_mapping = None
+        init_images_mapping = None
     db_plant_mapping = get_plant_mapping(conn)
     tables_data = {
         "botanist": [],
@@ -231,11 +265,11 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
     for plant in plants:
         if check_for_error(plant):
             botanist_data = get_botanist_data(
-                plant, db_botanist_mapping, initial_botanist_mapping)
+                plant, db_botanist_mapping, init_botanist_mapping)
             if botanist_data:
                 tables_data["botanist"].append(botanist_data)
             origin_location_data = get_origin_data(
-                plant, db_origin_mapping, initial_origin_mapping)
+                plant, db_origin_mapping, init_origin_mapping)
             if origin_location_data:
                 tables_data["origin_location"].append(origin_location_data)
             license_data = get_license_data(
@@ -243,11 +277,11 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
             if license_data:
                 tables_data["license"].append(license_data)
             images_data = get_images_data(
-                plant, db_images_mapping, initial_images_mapping, db_license_mapping)
+                plant, db_images_mapping, init_images_mapping, db_license_mapping)
             if images_data:
                 tables_data["images"].append(images_data)
             plant_data = get_plant_data(plant, db_plant_mapping, db_origin_mapping,
-                                        initial_origin_mapping, db_botanist_mapping, initial_botanist_mapping, db_images_mapping, initial_images_mapping)
+                                        init_origin_mapping, db_botanist_mapping, init_botanist_mapping, db_images_mapping, init_images_mapping)
             if plant_data:
                 tables_data["plant"].append(plant_data)
             plant_health = get_health_data(plant)
@@ -257,3 +291,8 @@ def get_table_data(plants: list[dict], conn: pymssql.Connection) -> dict[list[tu
 
 if __name__ == "__main__":
     conn = get_connection()
+    plants = asyncio.run(get_plant_data_from_api(PLANT_IDS))
+    start_time = time.time()
+    print(get_table_data(plants, conn))
+    end_time = time.time()
+    print(end_time-start_time)

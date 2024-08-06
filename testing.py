@@ -1,5 +1,10 @@
 from datetime import datetime
 
-ast_watered = datetime.strptime(
-    "Mon, 05 Aug 2024 14:56:47 GMT", "%a, %d %b %Y %H:%M:%S %Z")
-print(ast_watered)
+
+def read_txt():
+    with open("json_example.txt", "r") as f:
+        return f.read()
+
+
+jsons = read_txt()
+print(jsons)

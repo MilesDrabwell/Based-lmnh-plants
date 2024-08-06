@@ -1,6 +1,5 @@
 pytest
 pymssql
-python-dotenv
 pylint
 mock
 # python3 -m venv .venv
