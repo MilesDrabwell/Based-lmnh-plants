@@ -1,11 +1,3 @@
---Initialise sequence to generate license id id the value is null
-IF NOT EXISTS (SELECT * FROM sys.sequences WHERE name = 'missinglicenseid' AND schema_id = SCHEMA_ID('alpha'))
-BEGIN
-    EXEC('CREATE SEQUENCE alpha.missinglicenseid
-          START WITH 1
-          INCREMENT BY 1;');
-END
-
 --Script to delete foreign key constraints to drop tables.
 DECLARE @sql NVARCHAR(MAX);
 
@@ -29,14 +21,14 @@ IF OBJECT_ID('alpha.plant', 'U') IS NOT NULL DROP TABLE alpha.plant;
 
 --Begin creating the tables.
 CREATE TABLE alpha.botanist(
-    botanist_id INT IDENTITY(1,1) PRIMARY KEY,
+    botanist_id INT NOT NULL PRIMARY KEY,
     name VARCHAR(MAX),
     email VARCHAR(MAX),
     phone VARCHAR(MAX)
 );
 
 CREATE TABLE alpha.origin_location(
-    origin_location_id INT IDENTITY(1,1) PRIMARY KEY,
+    origin_location_id INT NOT NULL PRIMARY KEY,
     latitude FLOAT,
     longitude FLOAT,
     locality_name VARCHAR(MAX),
@@ -46,13 +38,13 @@ CREATE TABLE alpha.origin_location(
 );
 
 CREATE TABLE alpha.license(
-    license_id INT DEFAULT NEXT VALUE FOR alpha.missinglicenseid PRIMARY KEY,
+    license_id INT NOT NULL PRIMARY KEY,
     license_name VARCHAR(MAX),
     license_url VARCHAR(MAX)
 );
 
 CREATE TABLE alpha.images(
-    image_id INT IDENTITY(1,1) PRIMARY KEY,
+    image_id INT NOT NULL PRIMARY KEY,
     license_id INT,
     thumbnail_url VARCHAR(MAX),
     small_url VARCHAR(MAX),
@@ -75,7 +67,7 @@ CREATE TABLE alpha.plant(
 );
 
 CREATE TABLE alpha.plant_health(
-    plant_health_id INT IDENTITY(1,1) PRIMARY KEY,
+    plant_health_id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     plant_id INT,
     recording_time DATETIME,
     soil_moisture FLOAT,
