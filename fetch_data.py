@@ -46,6 +46,7 @@ async def main() -> None:
         end_time = time.time()
         print(f"API calls took {end_time - start_time} seconds")
         # await asyncio.sleep(1)
+        print(plants_data)
 
 
 if __name__ == "__main__":
