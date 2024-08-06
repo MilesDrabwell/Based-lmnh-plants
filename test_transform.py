@@ -1,5 +1,5 @@
 import pytest
-from transform import check_for_error, get_botanist_data, get_origin_data, get_license_data, get_images_data, get_plant_data
+from transform import check_for_error, get_botanist_data, get_origin_data, get_license_data, get_images_data, get_plant_data, get_health_data
 
 
 @pytest.fixture
@@ -126,6 +126,32 @@ class TestPlants:
 
     def test_get_plant_data_plant_new_other_ids(self):
         return_value = get_plant_data(
-            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': 'GB'}, {'plant_id': 2}, {'GB': 2}, {}, {}, {}, {}, {})
+            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': [0, 0, 0, 'GB'], 'botanist': {'name': 'Barbara'}, 'images': {'regular_url': 'Disney.com'}}, {'plant_id': 2}, {'GB': 10}, {}, {'Barbara': 20}, {}, {'Disney.com': 452}, {})
+        print()
         assert isinstance(return_value, tuple) == True
-        assert return_value[0] == 3
+        assert return_value[5] == 10
+        assert return_value[3] == 20
+        assert return_value[4] == 452
+
+
+class TestPlantHealth:
+    def test_get_images_data_image_not_exists(self, test_database):
+        assert get_health_data(
+            {}) == None
+
+    def test_get_image_data_image_exists(self, test_database):
+        assert get_health_data(
+            {}, test_database, {}, {"images": {'license_name': 'Universal'}}) == None
+
+    def test_get_image_data_image_new_empty_db(self):
+        return_value = get_health_data(
+            {})
+        assert isinstance(return_value, tuple) == True
+        assert return_value[0] == 452
+
+    def test_get_image_data_image_new_image(self):
+        return_value = get_health_data(
+            {})
+        print(return_value)
+        assert isinstance(return_value, tuple) == True
+        assert return_value[0] == 453
