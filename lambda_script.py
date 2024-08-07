@@ -1,6 +1,7 @@
 """Python script run on AWS Lambda to move data from short to long term storage every 24 hours"""
 
 from os import getenv
+from os.path import splitext
 from csv import DictWriter
 from datetime import datetime, timedelta
 from pymssql import connect
@@ -57,12 +58,15 @@ def get_client() -> client:
     return aws_client
 
 
-def write_data_to_csv(aws_client: client, old_data: list[dict]) -> None:
+def write_data_to_csv(
+    aws_client: client, old_data: list[dict], cutoff_time: datetime
+) -> None:
     """Retrieves existing long term data from S3 bucket and appends rows
     without loading entire file into memory and sends it back to the s3 bucket"""
-
-    aws_client.download_file(BUCKET_NAME, FILENAME, FILENAME)
-    with open(FILENAME, "a", newline="", encoding="utf-8") as f:
+    date_string = cutoff_time.strftime("%d-%m-%y")
+    prefix, extension = splitext(FILENAME)[0]
+    dated_filename = prefix + "_" + date_string + extension
+    with open(dated_filename, "a", newline="", encoding="utf-8") as f:
         field_names = [
             "plant_health_id",
             "plant_id",
@@ -72,11 +76,9 @@ def write_data_to_csv(aws_client: client, old_data: list[dict]) -> None:
             "last_watered",
         ]
         dict_writer = DictWriter(f, fieldnames=field_names)
-        f.seek(0, 2)
-        if f.tell() == 0:
-            dict_writer.writeheader()
+        dict_writer.writeheader()
         dict_writer.writerows(old_data)
-    aws_client.upload_file(FILENAME, BUCKET_NAME, FILENAME)
+    aws_client.upload_file(dated_filename, BUCKET_NAME, dated_filename)
 
 
 def handler(event: dict, context) -> None:
@@ -86,7 +88,7 @@ def handler(event: dict, context) -> None:
     old_data = get_old_data(conn, cutoff_time)
     delete_old_data(conn, cutoff_time)
     aws_client = get_client()
-    write_data_to_csv(aws_client, old_data)
+    write_data_to_csv(aws_client, old_data, cutoff_time)
 
 
 if __name__ == "__main__":
