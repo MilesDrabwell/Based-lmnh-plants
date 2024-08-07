@@ -28,6 +28,7 @@ Dropdown - <u>**Filter by**</u>:
 - [Line Graph] For each plant. This graph has two y-axes, one with temperature, one with moisture (when watered will be seen by spikes in moisture) and time will be the x axis.
 
 ## Layout
+See [https://excalidraw.com/#json=C3RxBSzgMNaBPaRIav5q2,aHKyiquHU67wbIa11_X9xg]
 Have two tabs, one for live data one for historical (live one by default/ what you see first)
 Filters on a sidebar - Same exact filters for both for now
 Colours - green shades to match plant vibes
@@ -38,29 +39,23 @@ Above and Beyond: Incorporate pictures with the plant data
 - Temperature vs Moisture
 
 ### Historical tab
-- Just an idea idk if it's good:
-<br>Have this like a table (in terms of structure - not have an actual table - do this but putting things in containers) so maybe:
-
-(Filter sidebar over here)|Plant (scientific name)|Historical Temperature|Historical Moisture|When Watered|
----|----|----|----|----|
----|Heliconia schiedeana| graph | graph | graph |
----|Cordyline fruticosa| graph | graph | graph |
+- Moisture and Temperature vs time per plant - depends on filters
+- (Above and beyond? Add graph for warnings by plant in the history tab)
 
 
+## Other info
+Warnings to consider: what is a bad soil moisture, temperature, missing water?
+- Temperature: 20 at night, 25-30°C during the day
+- Soil: 20% - 40%
+- Water: twice a week in the summer, 1–2 weeks in winter
 
-###### Other info
-What are warnings:
-- what is a bad soil moisture, temperature, missing water?
+Temperature:
+During hours of light, stick to a temperature between 25°C-30°C, depending on your lamp's light output. During dark hours you can drop this to around 20°C.
+https://plagron.com/en/grow-topics/temperature#:~:text=During%20hours%20of%20light%2C%20stick,day%20as%20small%20as%20possible.
 
-Comments from Chris
-- do as much as you can in sql not in pandas
-- if things go wrong - you gauge this but keep in mind some erroneous values are only momentarily
-- add point in readme about what happens if there are 1000 plants and if there are 200000000 plants and suggest a potential solution or mention something like (currently there is no scaling but there could be)
+Soil Moisture:
+The majority of flowers, trees, and shrubs require moisture levels between 21% - 40%
+https://www.acurite.com/blog/soil-moisture-guide-for-plants-and-vegetables.html#:~:text=It%20is%20important%20to%20note,between%2041%25%20%2D%2080%25.
 
-
-IMPROVE
-+ add graph for warnings by plant in the history tab
-
-
-
-
+Tropical plants might need water twice a week in the summer, 1–2 weeks in winter https://www.thesill.com/blog/drink-up
+In general, houseplants' potting soil should be kept moist, but not wet. They normally need watering once or twice a week in the spring and summer, but less in the autumn and winter. https://www.gardenhealth.com/advice/houseplant-care/how-to-water-and-feed-houseplants#:~:text=In%20general%2C%20houseplants'%20potting%20soil,is%20not%20always%20the%20case.
