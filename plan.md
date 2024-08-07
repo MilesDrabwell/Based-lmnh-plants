@@ -14,9 +14,9 @@ Main:
 - <u>**Filter by**</u> Plant id - makes it easier to look at any specific plant - say if you find a warning with a plant, it is easy to look for said plant
 - <u>**Filter by**</u> Recorded time - potentially have this as a slider - to maybe only see data from today or only from last week etc
 - <u>**Order by**</u> Last watered - not too sure about this one as it doesn't matter as some plants need to be watered more often than others
-- <u>**Filter by**</u> Plant scientific name - potentially you may only want to look at a species at a time
+- <s><u>**Filter by**</u> Plant scientific name - potentially you may only want to look at a species at a time</s> all different so this would be a little useless in our case but useful in a real-world case
 
-Dropdown - <u>**Group by**</u>:
+Dropdown - <u>**Filter by**</u>:
 - Botanist (name)- potentially some may be better than others so you may want to group by to see for example who is most suited to assign a plant to that comes from France
 - Origin Location - potentially to see if a warning is affecting a group of plants from the same area or for example to gather information about the ideal temperature for the plants from that area. [I feel like latitude (combined with like a longitude range) may provide more insight... but maybe not]
 - Plant scientific name - potentially if you have multiple plants of the same species, you may only care about the type so not grouping may skew the data?
@@ -62,6 +62,9 @@ Comments from Chris
 - if things go wrong - you gauge this but keep in mind some erroneous values are only momentarily
 - add point in readme about what happens if there are 1000 plants and if there are 200000000 plants and suggest a potential solution or mention something like (currently there is no scaling but there could be)
 
+
+IMPROVE
++ add graph for warnings by plant in the history tab
 
 
 
