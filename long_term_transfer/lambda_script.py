@@ -81,14 +81,17 @@ def write_data_to_csv(
     aws_client.upload_file(dated_filename, BUCKET_NAME, dated_filename)
 
 
-def handler(event: dict, context) -> None:
+def handler(event: dict, context) -> dict:
     """Handler function called by AWS Lambda that moves data from short to long term storage"""
     conn = get_connection()
     cutoff_time = calculate_cutoff_time()
     old_data = get_old_data(conn, cutoff_time)
-    delete_old_data(conn, cutoff_time)
-    aws_client = get_client()
-    write_data_to_csv(aws_client, old_data, cutoff_time)
+    row_count = len(old_data)
+    if row_count:
+        delete_old_data(conn, cutoff_time)
+        aws_client = get_client()
+        write_data_to_csv(aws_client, old_data, cutoff_time)
+    return {"rows_transferred": row_count}
 
 
 if __name__ == "__main__":
