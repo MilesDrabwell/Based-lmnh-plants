@@ -1,4 +1,7 @@
---Script to delete foreign key constraints to drop tables.
+--Set default schema to allocated schema
+ALTER USER [alpha] WITH DEFAULT_SCHEMA = alpha;
+
+--T-SQL Script to delete foreign key constraints to drop tables.
 DECLARE @sql NVARCHAR(MAX);
 
 SELECT @sql = STRING_AGG('ALTER TABLE ' + QUOTENAME(s.name) + '.' + QUOTENAME(t.name) + ' DROP CONSTRAINT ' + QUOTENAME(f.name) + ';', CHAR(13))
