@@ -54,14 +54,12 @@ Above and Beyond: Incorporate pictures with the plant data
 
 
 ###### Other info
-The key things they wanted to see were latest temperature and moisture reading for every plant so those go at the top.
-- have two tabs one for live data and one for historical data
-
 What are warnings:
 - what is a bad soil moisture, temperature, missing water?
 
--do as much as you can in sql not in pandas
--if things go wrong - you gauge this but keep in mind some erroneous values are only momentarily
+Comments from Chris
+- do as much as you can in sql not in pandas
+- if things go wrong - you gauge this but keep in mind some erroneous values are only momentarily
 - add point in readme about what happens if there are 1000 plants and if there are 200000000 plants and suggest a potential solution or mention something like (currently there is no scaling but there could be)
 
 
