@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import pandas as pd
 
 FILENAME = "long_term_data.parquet"
-BUCKET_NAME = "c12-lmnh-alpha-storage"
+BUCKET_NAME = "c12-lmnh-based-storage"
 
 
 def get_connection() -> Connection:
