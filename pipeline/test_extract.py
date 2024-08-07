@@ -1,7 +1,7 @@
 "Testing the functionality of fetch_data.py"
 from unittest.mock import patch, AsyncMock
 import pytest
-from extract import get_api_plant_data, new_plant_ids
+from pipeline.extract import get_api_plant_data, new_plant_ids
 
 NUMBER_OF_PLANTS = 50
 
@@ -48,7 +48,8 @@ class TestPlantData:
         """Raises error as does not allow plants that do not exist"""
         mock_responses = [MockHTTPResponse(plant_example)] * 20
         with patch(
-            "asyncio.gather", AsyncMock(return_value=mock_responses)):
+            "asyncio.gather", AsyncMock(return_value=mock_responses)
+        ) as patch_gather:
             with pytest.raises(TypeError):
                 assert await get_api_plant_data("a")
                 assert await get_api_plant_data({"plant_id"})
