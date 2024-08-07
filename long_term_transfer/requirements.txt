@@ -1,11 +1,5 @@
 pytest
-pymssql
-pylint
 mock
-pytest-cov
-aiohttp
-requests
-pytest-asyncio
 pytest-cov
 pylint
 pymssql
