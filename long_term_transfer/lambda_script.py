@@ -58,7 +58,7 @@ def get_client() -> client:
     return aws_client
 
 
-def write_data_to_csv(
+def write_data_to_parquet(
     aws_client: client, old_data: list[dict], cutoff_time: datetime
 ) -> None:
     """Retrieves existing long term data from S3 bucket and appends rows
@@ -80,7 +80,7 @@ def handler(event: dict, context) -> dict:
     if row_count:
         delete_old_data(conn, cutoff_time)
         aws_client = get_client()
-        write_data_to_csv(aws_client, old_data, cutoff_time)
+        write_data_to_parquet(aws_client, old_data, cutoff_time)
     return {"rows_transferred": row_count}
 
 
