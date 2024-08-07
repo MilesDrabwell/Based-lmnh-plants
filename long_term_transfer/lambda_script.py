@@ -2,15 +2,15 @@
 
 from os import getenv
 from os.path import splitext
-from csv import DictWriter
 from datetime import datetime, timedelta
 from pymssql import connect
 from pymssql._pymssql import Connection
 import boto3
 from botocore import client
 from dotenv import load_dotenv
+import pandas as pd
 
-FILENAME = "long_term_data.csv"
+FILENAME = "long_term_data.parquet"
 BUCKET_NAME = "c12-lmnh-alpha-storage"
 
 
@@ -66,18 +66,8 @@ def write_data_to_csv(
     date_string = cutoff_time.strftime("%d-%m-%y")
     prefix, extension = splitext(FILENAME)[0]
     dated_filename = prefix + "_" + date_string + extension
-    with open(dated_filename, "a", newline="", encoding="utf-8") as f:
-        field_names = [
-            "plant_health_id",
-            "plant_id",
-            "recording_time",
-            "soil_moisture",
-            "temperature",
-            "last_watered",
-        ]
-        dict_writer = DictWriter(f, fieldnames=field_names)
-        dict_writer.writeheader()
-        dict_writer.writerows(old_data)
+    df = pd.DataFrame(old_data)
+    df.to_parquet(dated_filename)
     aws_client.upload_file(dated_filename, BUCKET_NAME, dated_filename)
 
 

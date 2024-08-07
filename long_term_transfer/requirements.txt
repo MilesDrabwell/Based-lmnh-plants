@@ -5,6 +5,9 @@ pylint
 pymssql
 boto3
 python-dotenv
+pyarrow
+fastparquet
+pandas
 # python3 -m venv .venv
 # source .venv/bin/activate
 # pip3 install --pre --no-binary :all: -r requirements.txt --no-cache
