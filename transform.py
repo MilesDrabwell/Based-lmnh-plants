@@ -77,6 +77,7 @@ def get_botanist_data(
         id = max(mapping.values()) + 1
     else:
         id = initial_mapping.get(plant["botanist"]["name"])
+    mapping[plant["botanist"]["name"]] = id
     return (
         id,
         plant.get("botanist").get("name"),
@@ -125,8 +126,9 @@ def get_origin_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple 
             return None
         id = max(mapping.values()) + 1
     else:
-        print(plant["origin_location"])
+        # print(plant["origin_location"])
         id = initial_mapping.get(plant["origin_location"][2])
+    mapping[plant["origin_location"][2]] = id
     continent = plant.get("origin_location")[4].split("/")[0]
     city = plant.get("origin_location")[4].split("/")[1]
     return (
@@ -203,6 +205,7 @@ def get_images_data(
         id = max(mapping.values()) + 1
     else:
         id = initial_mapping.get(plant["images"]["regular_url"])
+    mapping[plant["images"]["regular_url"]] = id
     license_id = license_mapping.get(plant["images"]["license_name"])
     if not license_id:
         license_id = plant.get("images").get("license")
@@ -222,7 +225,7 @@ def get_plant_mapping(conn: Connection) -> dict:
         curs.execute("SELECT plant_name, plant_id FROM alpha.plant")
         rows = curs.fetchall()
         # logging.info('Created a mapping for "license" values')
-    return {row["plant_name"]: row["plant_id"] for row in rows}
+    return [row["plant_id"] for row in rows]
 
 
 def get_plant_data(
@@ -235,17 +238,21 @@ def get_plant_data(
     image_mapping: dict,
     initial_image_mapping: dict,
 ) -> tuple | None:
-
-    print(initial_origin_mapping)
     if not plant.get("name"):
         return None
     id = plant.get("plant_id")
-    if id in mapping.values():
+    if id in mapping:
         return None
+    mapping.append(id)
     if plant.get("origin_location"):
         origin_location_id = origin_mapping.get(plant["origin_location"][2])
         if not origin_location_id:
-            origin_location_id = initial_origin_mapping.get(plant["origin_location"][2])
+            try:
+                origin_location_id = max(origin_mapping.values()) + 1
+            except:
+                origin_location_id = initial_origin_mapping.get(
+                    plant["origin_location"][2]
+                )
     else:
         origin_location_id = None
     if plant.get("botanist"):
@@ -257,7 +264,10 @@ def get_plant_data(
     if plant.get("images"):
         image_id = image_mapping.get(plant["images"]["regular_url"])
         if not image_id:
-            image_id = initial_image_mapping.get(plant["images"]["regular_url"])
+            try:
+                image_id = max(image_mapping.values()) + 1
+            except:
+                image_id = initial_image_mapping.get(plant["images"]["regular_url"])
     else:
         image_id = None
 
