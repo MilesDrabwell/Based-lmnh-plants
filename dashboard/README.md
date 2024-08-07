@@ -2,9 +2,9 @@
 - make it easier to maintain the botanical garden
 - monitor the health of the plants in the conservatory and alert the gardeners when there is a problem.
 
-* [*] To be able to view the data in real-time
-* [*] To be able to view the data from the long-term storage
-* [*] View graphs of the latest temperature and moisture readings for every plant
+* [x] To be able to view the data in real-time
+* [x] To be able to view the data from the long-term storage
+* [x] View graphs of the latest temperature and moisture readings for every plant
 <br>'latest', I assume means latest minute, so this would be updating every minute if you refresh (however, should not be noticeable as the readings change minimally)
 
 # Ideas of what to include:
