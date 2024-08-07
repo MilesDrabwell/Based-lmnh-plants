@@ -1,5 +1,5 @@
 import pytest
-from transform import check_for_error, get_botanist_data, get_origin_data, get_license_data, get_images_data, get_plant_data, get_health_data
+from pipeline.transform import check_for_error, get_botanist_data, get_origin_data, get_license_data, get_images_data, get_plant_data, get_health_data
 
 
 @pytest.fixture
@@ -53,11 +53,11 @@ class TestOrigin:
 
     def test_get_origin_data_origin_location_exists(self, test_database):
         assert get_origin_data(
-            {"origin_location": [0, 0, 'france', 'FR']}, test_database, {}) == None
+            {"origin_location": [0, 0, 'FR']}, test_database, {}) == None
 
     def test_get_origin_data_origin_new_empty_db(self):
         return_value = get_origin_data(
-            {"origin_location": [0, 0, 'great britain', 'GB', 'test/location']}, {}, {'GB': 2})
+            {"origin_location": [0, 0, 'GB', 'Great Britain', 'test/location']}, {}, {'GB': 2})
         assert isinstance(return_value, tuple) == True
         assert return_value[0] == 2
 
@@ -116,17 +116,17 @@ class TestPlants:
 
     def test_get_plant_data_plant_exists(self, test_database):
         assert get_plant_data(
-            {'name': 'test plant', 'plant_id': 3}, test_database, {}, {}, {}, {}, {}, {}) == None
+            {'name': 'test plant', 'plant_id': 3}, [3, 4, 6], {}, {}, {}, {}, {}, {}) == None
 
     def test_get_plant_data_plant_new(self):
         return_value = get_plant_data(
-            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test']}, {'plant_id': 2}, {}, {}, {}, {}, {}, {})
+            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test']}, [2], {}, {}, {}, {}, {}, {})
         assert isinstance(return_value, tuple) == True
         assert return_value[0] == 3
 
     def test_get_plant_data_plant_new_other_ids(self):
         return_value = get_plant_data(
-            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': [0, 0, 0, 'GB'], 'botanist': {'name': 'Barbara'}, 'images': {'regular_url': 'Disney.com'}}, {'plant_id': 2}, {'GB': 10}, {}, {'Barbara': 20}, {}, {'Disney.com': 452}, {})
+            {'name': 'test plant', 'plant_id': 3, 'scientific_name': ['science_test'], 'origin_location': [0, 0, "GB", 'GB'], 'botanist': {'name': 'Barbara'}, 'images': {'regular_url': 'Disney.com'}}, [2], {'GB': 10}, {}, {'Barbara': 20}, {}, {'Disney.com': 452}, {})
         print()
         assert isinstance(return_value, tuple) == True
         assert return_value[5] == 10
