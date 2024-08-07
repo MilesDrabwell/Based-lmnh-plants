@@ -26,7 +26,7 @@ def insert_license(conn: Connection, license_data: list[tuple]):
         INSERT INTO license(license_id, license_name, license_url)
         VALUES (%s, %s, %s);
     """
-    print(license_data)
+    # print(license_data)
     with conn.cursor() as cur:
         cur.executemany(query, license_data)
     conn.commit()
@@ -34,7 +34,7 @@ def insert_license(conn: Connection, license_data: list[tuple]):
 
 def insert_images(conn: Connection, images_data: list[tuple]):
     """Returns the query to add all the image information"""
-    print(images_data)
+    # print(images_data)
     query = """
         INSERT INTO images(image_id, license_id, thumbnail_url, small_url, medium_url, regular_url, original_url)
         VALUES (%s, %s, %s, %s, %s, %s, %s);
@@ -46,7 +46,7 @@ def insert_images(conn: Connection, images_data: list[tuple]):
 
 def insert_origin_location(conn: Connection, location_data: list[tuple]):
     """Returns the query to add all the origin information"""
-    print(location_data)
+    # print(location_data)
     query = """
         INSERT INTO origin_location(origin_location_id, latitude, longitude, locality_name, continent_name, city_name, country_code)
         VALUES (%s, %s, %s, %s, %s, %s, %s);
@@ -80,7 +80,7 @@ def insert_plant_health(conn: Connection, health_data: list[tuple]):
 
 def insert_plant(conn: Connection, plant_data: list[tuple]):
     """Returns the query to link and add all the plant data"""
-    print(plant_data)
+    # print(plant_data)
     query = """
         INSERT INTO plant(plant_id, plant_name, plant_scientific_name, botanist_id, image_id, origin_location_id)
         VALUES (%s, %s, %s, %s, %s, %s);
@@ -103,10 +103,10 @@ def load(
         insert_origin_location(conn, all_plants["origin_location"])
     if all_plants.get("botanist"):
         insert_botanist(conn, all_plants["botanist"])
-    if all_plants.get("plant_health"):
-        insert_plant_health(conn, all_plants["plant_health"])
     if all_plants.get("plant"):
         insert_plant(conn, all_plants["plant"])
+    if all_plants.get("plant_health"):
+        insert_plant_health(conn, all_plants["plant_health"])
 
 
 if __name__ == "__main__":

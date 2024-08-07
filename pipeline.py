@@ -7,7 +7,7 @@ from transform import get_table_data, get_connection
 from load import load
 
 URL = "https://data-eng-plants-api.herokuapp.com/plants/{}"
-PLANT_IDS = list(range(51))
+PLANT_IDS = list(range(1, 51))
 
 
 async def main() -> None:
