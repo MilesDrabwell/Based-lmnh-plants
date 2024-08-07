@@ -48,8 +48,7 @@ class TestPlantData:
         """Raises error as does not allow plants that do not exist"""
         mock_responses = [MockHTTPResponse(plant_example)]*20
         with patch(
-            "asyncio.gather", AsyncMock(return_value=mock_responses)
-        ) as patch_gather:
+            "asyncio.gather", AsyncMock(return_value=mock_responses)):
             with pytest.raises(TypeError):
                 assert await get_plant_data("a")
                 assert await get_plant_data({'plant_id'})
