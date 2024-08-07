@@ -2,8 +2,8 @@
 
 import time
 import asyncio
-from pipeline.extract import get_api_plant_data, new_plant_ids
-from pipeline.transform import get_table_data, get_connection
+from extract import get_api_plant_data, new_plant_ids
+from transform import get_table_data, get_connection
 from load import load
 import logging
 

@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime
 import pymssql
 from pymssql._pymssql import Connection
-from pipeline.extract import get_api_plant_data
+from extract import get_api_plant_data
 
 
 def check_for_error(plant: dict) -> bool:

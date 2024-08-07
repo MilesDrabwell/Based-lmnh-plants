@@ -4,8 +4,8 @@ from os import getenv
 import asyncio
 from pymssql import connect
 from pymssql._pymssql import Connection
-from pipeline.extract import get_api_plant_data
-from pipeline.transform import get_table_data
+from extract import get_api_plant_data
+from transform import get_table_data
 
 
 def get_connection() -> Connection:

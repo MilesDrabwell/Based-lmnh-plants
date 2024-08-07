@@ -1,7 +1,7 @@
 "Testing the functionality of fetch_data.py"
 from unittest.mock import patch, AsyncMock
 import pytest
-from pipeline.extract import get_api_plant_data, new_plant_ids
+from extract import get_api_plant_data, new_plant_ids
 
 NUMBER_OF_PLANTS = 50
 
