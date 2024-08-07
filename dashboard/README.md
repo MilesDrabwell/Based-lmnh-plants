@@ -29,10 +29,10 @@ Dropdown - <u>**Filter by**</u>:
 
 ## Layout
 See [https://excalidraw.com/#json=C3RxBSzgMNaBPaRIav5q2,aHKyiquHU67wbIa11_X9xg]
-Have two tabs, one for live data one for historical (live one by default/ what you see first)
-Filters on a sidebar - Same exact filters for both for now
-Colours - green shades to match plant vibes
-Above and Beyond: Incorporate pictures with the plant data
+<br>Have two tabs, one for live data one for historical (live one by default/ what you see first)
+<br>Filters on a sidebar - Same exact filters for both for now
+<br>Colours - green shades to match plant vibes
+<br>Above and Beyond: Incorporate pictures with the plant data
 
 ### Live tab
 - Display warnings first
