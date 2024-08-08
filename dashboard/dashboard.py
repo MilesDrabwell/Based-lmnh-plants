@@ -6,6 +6,7 @@ import altair as alt
 import pandas as pd
 from dotenv import load_dotenv
 
+#establish a connection
 def get_connection():
     """
     Establishes a connection to the database
@@ -18,7 +19,7 @@ def get_connection():
         port=getenv("DB_PORT")
     )
 
-
+#get all the variables required for the filters
 def get_botanists():
     """Obtains data about botanists from the RDS database"""
     load_dotenv()
@@ -30,6 +31,14 @@ def get_botanists():
     conn.commit()
     return all_data
 
+def get_time_range():
+    pass
+
+def get_origin_countries():
+    pass
+
+
+#TODO - change based on filtered data instead
 def get_temp_vs_moist(conn):
     now = datetime.now()
     a_minute_ago = (now - timedelta(minutes=700)).strftime("%Y-%m-%d %H:%M")
@@ -73,26 +82,33 @@ def warnings(data):
         st.checkbox(f"""**Plant with ID {i['plant_id'].item()} has temperature: {i['temperature'].item()}**""")
 
 def filter_data(conn):
+    all_data = """
+    SELECT b.name, o.continent_name, p.plant_name, ph.recording_time, ph.soil_moisture, ph.temperature, ph.last_watered, ph.plant_id
+    FROM alpha.botanist b, alpha.origin_location o, alpha.plant p, alpha.plant_health ph
+    WHERE b.botanist_id = p.botanist_id AND o.origin_location_id=p.origin_location_id AND ph.plant_id=p.plant_id
+    """
+    original_data = all_data
     botanist_choices = [i[1] for i in get_botanists()]
-    print(tuple(botanist_choices))
     botanist_selected = st.sidebar.multiselect(
         "Filter by Botanist", botanist_choices)
     if botanist_selected:
-        query = """
-        WITH combined AS(
-            SELECT b.name, ph.plant_id, ph.soil_moisture, ph.temperature, ph.recording_time
-            FROM alpha.plant p, alpha.botanist b, alpha.plant_health ph
-            WHERE b.botanist_id = p.botanist_id AND ph.plant_id = p.plant_id
-            )
-        SELECT plant_id, soil_moisture, temperature, recording_time
-        FROM combined
+        all_data = """
+        WITH botanist_filter AS(%s)
+        SELECT *
+        FROM botanist_filter
         WHERE name in %s;
         """
+
+
+    
         with conn.cursor() as cur:
-            cur.execute(query,tuple(botanist_selected))
-            all_data = cur.fetchall()
+            cur.execute(all_data,(original_data,*botanist_selected))
+            data_points = cur.fetchall()
         conn.commit()
-        data_df = pd.DataFrame(all_data, columns =['plant_id', 'soil_moisture', 'temperature', 'recording_time'])
+        data_df = pd.DataFrame(data_points, columns =['name', 'continent_name', 'plant_name', 'recording_time',
+                                                    'soil_moisture', 'temperature', 'last_watered', 'plant_id'])
+    
+
         return data_df
 
 if __name__ == "__main__":
