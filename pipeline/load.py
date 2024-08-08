@@ -16,6 +16,7 @@ def get_connection() -> Connection:
         user=getenv("DB_USER"),
         password=getenv("DB_PASSWORD"),
         database=getenv("DB_NAME"),
+        tds_version="7.0",
     )
     return conn
 
