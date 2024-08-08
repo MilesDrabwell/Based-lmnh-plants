@@ -1,8 +1,10 @@
-FROM python:latest
+FROM public.ecr.aws/lambda/python:latest
+
+WORKDIR ${LAMBDA_TASK_ROOT}
 
 COPY requirements.txt .
 
-RUN pip3 install -r requirements.txt
+RUN pip install -r requirements.txt
 
 COPY extract.py .
 
@@ -13,8 +15,11 @@ COPY transform.py .
 COPY pipeline.py .
 
 EXPOSE 1433
+EXPOSE 80
+EXPOSE 443
 
-ENTRYPOINT ["python3", "pipeline.py"]
+CMD ["pipeline.handler"]
+
 
 #docker build -t based_plants:v1.0 . --platform "linux/amd64"
 
