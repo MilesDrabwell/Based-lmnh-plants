@@ -64,7 +64,7 @@ def write_data_to_parquet(
     """Retrieves existing long term data from S3 bucket and appends rows
     without loading entire file into memory and sends it back to the s3 bucket"""
     date_string = cutoff_time.strftime("%d-%m-%y")
-    prefix, extension = splitext(FILENAME)[0]
+    prefix, extension = splitext(FILENAME)
     dated_filename = prefix + "_" + date_string + extension
     df = pd.DataFrame(old_data)
     df.to_parquet(dated_filename)
