@@ -12,7 +12,7 @@ provider "aws" {
 }
 
 resource "aws_security_group" "dashboard_sg" {
-  name        = "c12-based-dashboardsg"
+  name        = "c12-based-dashboard"
   description = "Allow inbound psql traffic"
   vpc_id      = "vpc-061c17c21b97427d8"
 }
