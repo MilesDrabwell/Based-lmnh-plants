@@ -24,6 +24,8 @@ resource "aws_lambda_function" "historic_lambda" {
       DB_PASSWORD = var.DB_PASSWORD
       DB_PORT     = var.DB_PORT
       DB_USER     = var.DB_USER
+      ACCESS_KEY_ID = var.AWS_ACCESS_KEY
+      SECRET_ACCESS_KEY = var.AWS_SECRET_KEY
     }
   }
   ephemeral_storage {
