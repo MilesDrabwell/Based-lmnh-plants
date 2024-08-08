@@ -32,7 +32,7 @@ async def main() -> dict:
     logger.info("all plant data uploaded")
     end_time = time.time()
     duration = end_time - start_time
-    # logger.info(f"API call took {duration} seconds")
+    logger.info(f"API call took {duration} seconds")
     return duration
 
 
