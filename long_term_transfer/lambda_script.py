@@ -1,6 +1,6 @@
 """Python script run on AWS Lambda to move data from short to long term storage every 24 hours"""
 
-from os import getenv
+from os import getenv, mkdir
 from os.path import splitext
 from datetime import datetime, timedelta
 from pymssql import connect
@@ -53,8 +53,8 @@ def get_client() -> client:
     """Initiates a connection to the S3 AWS Cloud using required credentials."""
     aws_client = boto3.client(
         "s3",
-        aws_access_key_id=getenv("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=getenv("AWS_SECRET_ACCESS_KEY"),
+        aws_access_key_id=getenv("ACCESS_KEY_ID"),
+        aws_secret_access_key=getenv("SECRET_ACCESS_KEY"),
     )
     return aws_client
 
@@ -67,9 +67,10 @@ def write_data_to_parquet(
     date_string = cutoff_time.strftime("%d-%m-%y")
     prefix, extension = splitext(FILENAME)
     dated_filename = prefix + "_" + date_string + extension
+    tmp_path = "/tmp/" + dated_filename
     df = pd.DataFrame(old_data)
-    df.to_parquet(dated_filename)
-    aws_client.upload_file(dated_filename, BUCKET_NAME, dated_filename)
+    df.to_parquet(tmp_path)
+    aws_client.upload_file(tmp_path, BUCKET_NAME, dated_filename)
 
 
 def handler(event: dict, context) -> dict:
@@ -79,9 +80,10 @@ def handler(event: dict, context) -> dict:
     old_data = get_old_data(conn, cutoff_time)
     row_count = len(old_data)
     if row_count:
-        delete_old_data(conn, cutoff_time)
         aws_client = get_client()
         write_data_to_parquet(aws_client, old_data, cutoff_time)
+        delete_old_data(conn, cutoff_time)
+
     return {"rows_transferred": row_count}
 
 
