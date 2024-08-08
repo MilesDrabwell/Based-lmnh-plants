@@ -12,26 +12,26 @@ provider "aws" {
 }
 
 resource "aws_security_group" "dashboard_sg" {
-  name        = "c12-based-pipelinesg"
+  name        = "c12-based-dashboardsg"
   description = "Allow inbound psql traffic"
   vpc_id      = "vpc-061c17c21b97427d8"
 }
 resource "aws_vpc_security_group_ingress_rule" "ipv4_sl_in" {
-  security_group_id = aws_security_group.pipeline_sg.id
+  security_group_id = aws_security_group.dashboard_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 8501
   ip_protocol       = "tcp"
   to_port           = 8501
 }
 resource "aws_vpc_security_group_ingress_rule" "ipv4_db_in" {
-  security_group_id = aws_security_group.pipeline_sg.id
+  security_group_id = aws_security_group.dashboard_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   from_port         = 1433
   ip_protocol       = "tcp"
   to_port           = 1433
 }
 resource "aws_vpc_security_group_egress_rule" "ipv4_all_out" {
-  security_group_id = aws_security_group.pipeline_sg.id
+  security_group_id = aws_security_group.dashboard_sg.id
   cidr_ipv4         = "0.0.0.0/0"
   ip_protocol       = "-1"
 }
@@ -110,7 +110,6 @@ resource "aws_ecs_service" "dashboard" {
       weight = 100
 
     }
-    launch_type             = "FARGATE"
     
     network_configuration {
         security_groups = [aws_security_group.dashboard_sg.id]
