@@ -16,7 +16,7 @@ PLANT_IDS = list(range(1, 51))
 
 
 async def main() -> dict:
-    """Main function to run the script in a while loop"""
+    """Main function to run the script"""
     plant_ids = PLANT_IDS
     conn = get_connection()
 
