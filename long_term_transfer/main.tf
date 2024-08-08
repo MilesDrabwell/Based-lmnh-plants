@@ -16,7 +16,7 @@ resource "aws_lambda_function" "historic_lambda" {
   skip_destroy                       = false
   tags                               = {}
   tags_all                           = {}
-  timeout                            = 3
+  timeout                            = 120
   environment {
     variables = {
       DB_HOST     = var.DB_HOST
