@@ -2,16 +2,16 @@
 
 from os import getenv
 from os.path import splitext
-from csv import DictWriter
 from datetime import datetime, timedelta
 from pymssql import connect
 from pymssql._pymssql import Connection
 import boto3
 from botocore import client
 from dotenv import load_dotenv
+import pandas as pd
 
-FILENAME = "long_term_data.csv"
-BUCKET_NAME = "c12-lmnh-alpha-storage"
+FILENAME = "long_term_data.parquet"
+BUCKET_NAME = "c12-lmnh-based-storage"
 
 
 def get_connection() -> Connection:
@@ -22,6 +22,7 @@ def get_connection() -> Connection:
         user=getenv("DB_USER"),
         password=getenv("DB_PASSWORD"),
         database=getenv("DB_NAME"),
+        tds_version="7.0",
     )
     return conn
 
@@ -58,37 +59,30 @@ def get_client() -> client:
     return aws_client
 
 
-def write_data_to_csv(
+def write_data_to_parquet(
     aws_client: client, old_data: list[dict], cutoff_time: datetime
 ) -> None:
     """Retrieves existing long term data from S3 bucket and appends rows
     without loading entire file into memory and sends it back to the s3 bucket"""
     date_string = cutoff_time.strftime("%d-%m-%y")
-    prefix, extension = splitext(FILENAME)[0]
+    prefix, extension = splitext(FILENAME)
     dated_filename = prefix + "_" + date_string + extension
-    with open(dated_filename, "a", newline="", encoding="utf-8") as f:
-        field_names = [
-            "plant_health_id",
-            "plant_id",
-            "recording_time",
-            "soil_moisture",
-            "temperature",
-            "last_watered",
-        ]
-        dict_writer = DictWriter(f, fieldnames=field_names)
-        dict_writer.writeheader()
-        dict_writer.writerows(old_data)
+    df = pd.DataFrame(old_data)
+    df.to_parquet(dated_filename)
     aws_client.upload_file(dated_filename, BUCKET_NAME, dated_filename)
 
 
-def handler(event: dict, context) -> None:
+def handler(event: dict, context) -> dict:
     """Handler function called by AWS Lambda that moves data from short to long term storage"""
     conn = get_connection()
     cutoff_time = calculate_cutoff_time()
     old_data = get_old_data(conn, cutoff_time)
-    delete_old_data(conn, cutoff_time)
-    aws_client = get_client()
-    write_data_to_csv(aws_client, old_data, cutoff_time)
+    row_count = len(old_data)
+    if row_count:
+        delete_old_data(conn, cutoff_time)
+        aws_client = get_client()
+        write_data_to_parquet(aws_client, old_data, cutoff_time)
+    return {"rows_transferred": row_count}
 
 
 if __name__ == "__main__":
