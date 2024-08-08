@@ -49,6 +49,16 @@ def get_origin_continent(conn):
     names = sorted(list(set([name[0] for name in all_data])))
     return names
 
+def get_plant_ids(conn):
+    """Obtains all possible plant ids"""
+    query = """SELECT plant_id FROM alpha.plant_health"""
+    with conn.cursor() as cur:
+        cur.execute(query)
+        all_data = cur.fetchall()
+    conn.commit()
+    ids = sorted(list(set([id[0] for id in all_data])))
+    return ids
+
 # Main chart for live data
 def temp_vs_moist(data:pd.DataFrame):# -> alt.Chart? type says <class 'altair.vegalite.v5.api.Chart'>
     """
@@ -63,8 +73,10 @@ def temp_vs_moist(data:pd.DataFrame):# -> alt.Chart? type says <class 'altair.ve
 
 def outliers(data:pd.DataFrame)->tuple[pd.DataFrame]:
     #decided based on average values
-    soil_outliers = (data['soil_moisture'] < 10) | ((data['soil_moisture'] > 30) & (data['soil_moisture'] < 95))
+    soil_outliers = (data['soil_moisture'] < 10) | ((data['soil_moisture'] > 100))
+    print('soil',sum(soil_outliers))
     temp_outliers = (data['temperature'] < 8) | (data['temperature'] > 31)
+    print('temperature',sum(temp_outliers))
     return (data.loc[soil_outliers], data.loc[temp_outliers])
 
 def warnings(data:tuple[pd.DataFrame]):
@@ -79,7 +91,8 @@ def warnings(data:tuple[pd.DataFrame]):
     for idx, i in data[1].iterrows():
         st.checkbox(f"""**Plant with ID {i['plant_id']} has temperature: {i['temperature']} °C**""", key = idx)
 
-def filter_data(conn, live=True):
+
+def filter_data(conn):
     """
     Returns only the data that has been filtered based on the options chosen through the sidebar
     """
@@ -91,6 +104,23 @@ def filter_data(conn, live=True):
         WHERE b.botanist_id = p.botanist_id AND o.origin_location_id=p.origin_location_id AND ph.plant_id=p.plant_id
         )"""
     data = 'all_data'
+
+    #filtered by plant id
+    plant_choices = get_plant_ids(connection)
+    plants_selected = st.sidebar.multiselect(
+        "Filter by Plant ID", plant_choices)
+    if plants_selected:
+        if len(plants_selected) == 1:
+            plants_selected = f"('{plants_selected[0]}')"
+        else:
+            plants_selected = tuple(plants_selected)
+        all_data = f"""{all_data},
+        plant_data AS(
+            SELECT *
+            FROM {data}
+            WHERE plant_id in {plants_selected})
+        """
+        data = 'plant_data'
 
     #filtered by botanist
     botanist_choices = get_botanists(conn)
@@ -126,70 +156,102 @@ def filter_data(conn, live=True):
         """
         data = 'continent_data'
 
-    #filtered by only today's data
-    if live:
-        now = str((datetime.now(timezone.utc).strftime('%H.%M')))
-        col1, col2 = st.sidebar.columns(2)
-        with col1:
-            hour = st.number_input("For a specific hour", value=int(now[:2]), max_value=int(now[:2]))
-        with col2:
-            if hour == int(now[:2]):
-                max_min = int(now[3:])
-            else:
-                max_min = 59
-            minute = st.number_input("For a specific minute", value=int(now[3:]), max_value=max_min)
-            if not minute:
-                minute=int(now[3:]) - 1
-        today = str(datetime.now().strftime('%Y-%m-%d'))
-        all_data = f"""{all_data},
-        live_data AS(
-            SELECT *
-            FROM {data}
-            WHERE recording_time > '{today} {hour}:{minute}' AND recording_time < '{today} {hour}:{minute+1}')
-        """
-        data = 'live_data'
-    if not live:
-        time_choice = get_time_range(connection)
-        time_range = st.sidebar.date_input("Change date range: (will not affect live data)", value=[time_choice[0].date(), time_choice[1].date()], min_value=time_choice[0].date(), max_value=time_choice[1].date(), format='DD-MM-YYYY')
-        if len(time_range) == 2:
-            start = time_range[0].strftime("%Y-%m-%d")
-            end = time_range[1].strftime("%Y-%m-%d")
-            all_data = f"""{all_data},
-            time_data AS(
-                SELECT *
-                FROM {data}
-                WHERE recording_time > '{start}' AND recording_time <= '{end} 23:59:59')
-            """
-            data = 'time_data'
-            print('found time range', time_range)
+    # #filtered by only today's data
+    now = str((datetime.now(timezone.utc).strftime('%H.%M')))
+    col1, col2 = st.sidebar.columns(2)
+    with col1:
+        hour = st.number_input("For a specific hour", value=int(now[:2]), min_value=0, max_value=int(now[:2]))
+    with col2:
+        if hour == int(now[:2]):
+            max_min = int(now[3:])
+        else:
+            max_min = 59
+        minute = st.number_input("For a specific minute", value=int(now[3:]), min_value=0, max_value=max_min)
+    today = str(datetime.now().strftime('%Y-%m-%d'))
+    end_time = datetime.strptime(today+str(hour)+'.'+str(minute), '%Y-%m-%d%H.%M')
+    start_time1 = end_time - timedelta(minutes=1)
+    start_time2 = end_time - timedelta(minutes=10)
+    all_data1 = f"""{all_data},
+    live_data AS(
+        SELECT *
+        FROM {data}
+        WHERE recording_time > '{start_time1}' AND recording_time < '{end_time}')
+    """
+    data1 = 'live_data'
 
-    query = f"""{all_data} SELECT * FROM {data};"""
+    query1 = f"""{all_data1} SELECT * FROM {data1};"""
+
+    all_data2 = f"""{all_data},
+    live_data AS(
+        SELECT *
+        FROM {data}
+        WHERE recording_time > '{start_time2}' AND recording_time < '{end_time}')
+    """
+    data2 = 'live_data'
+
+    query2 = f"""{all_data2} SELECT * FROM {data2};"""
     with conn.cursor() as cur:
-        cur.execute(query)
-        data_points = cur.fetchall()
+        cur.execute(query1)
+        data_points1 = cur.fetchall()
+        cur.execute(query2)
+        data_points2 = cur.fetchall()
     conn.commit()
-    data_df = pd.DataFrame(data_points, columns =['name', 'continent_name', 'plant_name', 'recording_time',
+    data_df1 = pd.DataFrame(data_points1, columns =['name', 'continent_name', 'plant_name', 'recording_time',
                                                         'soil_moisture', 'temperature', 'last_watered', 'plant_id'])
-    return data_df
+    data_df2 = pd.DataFrame(data_points2, columns =['name', 'continent_name', 'plant_name', 'recording_time',
+                                                        'soil_moisture', 'temperature', 'last_watered', 'plant_id'])
+    return (data_df1, data_df2)
+    
+
 
 if __name__ == "__main__":
     load_dotenv()
     connection = get_connection()
-    #print(get_time_range(connection)[0].date())
+    data = filter_data(connection)
+    current_data = data[0]
+    # print(data[0].info())
+    # print(data[1].info())
+    #two separate tabes, one for live, one for historical
     tab1, tab2 = st.tabs(["Live", "Historical"])
 
     with tab1:
-        live_data = filter_data(connection, True)
-        # errors = outliers(live_data)
+        past_data = data[1]
+        print('looking at outliers')
+        soil_outliers = past_data[(past_data['soil_moisture'] < 10) | ((past_data['soil_moisture'] > 100))]
+        if not soil_outliers.empty:
+            soil_errors = {}
+            for i, val in soil_outliers.iterrows():
+                id = val['plant_id']
+                soil_errors[id] = soil_errors.get(id, 0) + 1
+            print(soil_errors)
+        else:
+            print('no soil errors')
+        temp_outliers = past_data[(past_data['temperature'] < 8) | (past_data['temperature'] > 31)]
+        if not temp_outliers.empty:
+            temp_errors = {}
+            for i, val in temp_outliers.iterrows():
+                id = val['plant_id']
+                temp_errors[id] = temp_errors.get(id, 0) + 1
+            print(temp_errors)
+        else:
+            print('no temp errors')
+        # temp_errors = {}
+        # for i, val in errors[1].iterrows():
+        #     id = val['plant_id']
+        #     temp_errors[id] = temp_errors.get(id, 0) + 1
+        # print(temp_errors)
+        
         # if not (errors[0].empty and errors[1].empty):
-        #     warnings(errors)
+        #     print('found errors')
+        # warnings(current_data)
+
         st.header("Temperature and Moisture of the last minute")
-        graph = temp_vs_moist(live_data)
+        graph = temp_vs_moist(current_data)
         st.altair_chart(graph, use_container_width=True)
         
 
-        # now = datetime.now()
-        # a_minute_ago = (now - timedelta(minutes=1523)).strftime("%Y-%m-%d %H:%M")
-        # print('minute', a_minute_ago)
-        # now = (datetime.strptime(a_minute_ago,"%Y-%m-%d %H:%M") + timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M")
-        # print('now', now)
+        # # now = datetime.now()
+        # # a_minute_ago = (now - timedelta(minutes=1523)).strftime("%Y-%m-%d %H:%M")
+        # # print('minute', a_minute_ago)
+        # # now = (datetime.strptime(a_minute_ago,"%Y-%m-%d %H:%M") + timedelta(minutes=1)).strftime("%Y-%m-%d %H:%M")
+        # # print('now', now)
