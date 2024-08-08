@@ -16,7 +16,7 @@ PLANT_IDS = list(range(1, 51))
 
 
 async def main() -> dict:
-    """Main function to run the script in a while loop"""
+    """Main function to run the script"""
     plant_ids = PLANT_IDS
     conn = get_connection()
 
@@ -32,7 +32,7 @@ async def main() -> dict:
     logger.info("all plant data uploaded")
     end_time = time.time()
     duration = end_time - start_time
-    # logger.info(f"API call took {duration} seconds")
+    logger.info(f"API call took {duration} seconds")
     return duration
 
 
