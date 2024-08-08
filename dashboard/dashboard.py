@@ -149,8 +149,8 @@ if __name__ == "__main__":
         live_data = filter_data(connection, True)
         now = float(datetime.now().strftime('%H.%M'))
         number = st.number_input("Select a time", value=now)
-        if str(number)[-2:]
-        print(type(number))
+        if str(number)[-2:] > 59:
+            number = st.number_input("Select a time", value=now)
         # errors = outliers(live_data)
         # if not (errors[0].empty and errors[1].empty):
         #     warnings(errors)
