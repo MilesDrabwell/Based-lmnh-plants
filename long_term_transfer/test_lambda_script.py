@@ -1,7 +1,7 @@
 import pytest
 from datetime import datetime, timedelta
-from unittest.mock import MagicMock, patch
-from lambda_script import calculate_cutoff_time, get_old_data, delete_old_data, write_data_to_parquet, handler
+from unittest.mock import MagicMock
+from lambda_script import calculate_cutoff_time, get_old_data, delete_old_data
 
 
 class TestCutoffTime:
