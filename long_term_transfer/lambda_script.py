@@ -1,6 +1,6 @@
 """Python script run on AWS Lambda to move data from short to long term storage every 24 hours"""
 
-from os import getenv, mkdir
+from os import getenv
 from os.path import splitext
 from datetime import datetime, timedelta
 from pymssql import connect
