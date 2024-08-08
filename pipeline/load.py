@@ -5,19 +5,7 @@ import asyncio
 from pymssql import connect
 from pymssql._pymssql import Connection
 from extract import get_api_plant_data
-from transform import get_table_data
-
-
-def get_connection() -> Connection:
-    """Establishing a connection to our RDS"""
-    conn = connect(
-        host=getenv("DB_HOST"),
-        port=getenv("DB_PORT"),
-        user=getenv("DB_USER"),
-        password=getenv("DB_PASSWORD"),
-        database=getenv("DB_NAME"),
-    )
-    return conn
+from transform import get_table_data, get_connection
 
 
 def insert_license(conn: Connection, license_data: list[tuple]):
