@@ -7,3 +7,8 @@ __pycache__
 .pytest_cache
 .coverage
 .pemkey
+.terraform
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+terraform.tfvars
