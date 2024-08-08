@@ -25,4 +25,5 @@ CMD ["pipeline.handler"]
 
 #docker tag based_plants:v1.0 129033205317.dkr.ecr.eu-west-2.amazonaws.com/c12-based-pipeline
 
+
 #docker push 129033205317.dkr.ecr.eu-west-2.amazonaws.com/c12-based-pipeline
