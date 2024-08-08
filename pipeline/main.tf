@@ -39,6 +39,7 @@ resource "aws_lambda_function" "pipeline_lambda" {
 }
 
 
+
 resource "aws_scheduler_schedule" "pipeline_schedule" {
   group_name                   = "default"
   name                         = "c12-based-pipeline"
@@ -46,12 +47,13 @@ resource "aws_scheduler_schedule" "pipeline_schedule" {
   schedule_expression_timezone = "Europe/London"
   state                        = "ENABLED"
   flexible_time_window {
-    maximum_window_in_minutes = 15
-    mode                      = "FLEXIBLE"
+    maximum_window_in_minutes = 0
+    mode                      = "OFF"
   }
   target {
     arn      = "arn:aws:lambda:eu-west-2:129033205317:function:c12-based-lmnh-pipeline"
-    role_arn = "arn:aws:iam::129033205317:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_c859cc648a"
+    input    = "{}"
+    role_arn = "arn:aws:iam::129033205317:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_d6692370b3"
     retry_policy {
       maximum_event_age_in_seconds = 86400
       maximum_retry_attempts       = 185
