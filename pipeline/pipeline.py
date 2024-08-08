@@ -6,12 +6,25 @@ from extract import get_api_plant_data, new_plant_ids
 from transform import get_table_data, get_connection
 from load import load
 import logging
+import requests
 
 logger = logging.getLogger()
 
 
 URL = "https://data-eng-plants-api.herokuapp.com/plants/{}"
 PLANT_IDS = list(range(1, 51))
+
+url = "https://data-eng-plants-api.herokuapp.com/plants/{}"
+
+
+def get_plant_data_slow() -> list[dict]:
+
+    plant_ids = range(1)
+    results = []
+    for plant_id in plant_ids:
+        response = requests.get(url.format(plant_id))
+        results.append(response.json())
+    return results
 
 
 async def main() -> None:
@@ -38,4 +51,6 @@ async def main() -> None:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
+    print("hellllllloooooo wooooorllllllddddddd")
+    print(get_plant_data_slow())
     asyncio.run(main())
