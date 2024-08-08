@@ -1,3 +1,4 @@
+# pylint: skip-file
 """Unit tests for the load.py script"""
 import pytest
 from unittest.mock import patch, MagicMock
