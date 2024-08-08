@@ -4,8 +4,7 @@ provider "aws" {
   secret_key = var.AWS_SECRET_KEY
 }
 
-
-resource "aws_lambda_function" "based_historic_lambda" {
+resource "aws_lambda_function" "historic_lambda" {
   architectures                      = ["x86_64"]
   code_signing_config_arn            = null
   description                        = null
@@ -31,6 +30,15 @@ resource "aws_lambda_function" "based_historic_lambda" {
   tags                               = {}
   tags_all                           = {}
   timeout                            = 3
+  environment {
+    variables = {
+      DB_HOST     = var.DB_HOST
+      DB_NAME     = var.DB_NAME
+      DB_PASSWORD = var.DB_PASSWORD
+      DB_PORT     = var.DB_PORT
+      DB_USER     = var.DB_USER
+    }
+  }
   ephemeral_storage {
     size = 512
   }
@@ -63,7 +71,7 @@ resource "aws_scheduler_schedule" "lambda_schedule" {
   target {
     arn      = "arn:aws:lambda:eu-west-2:129033205317:function:c12-based-update-historic-data"
     input    = null
-    role_arn = "arn:aws:iam::129033205317:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_0af6e2ce3c"
+    role_arn = "arn:aws:iam::129033205317:role/service-role/Amazon_EventBridge_Scheduler_LAMBDA_ea33825b28"
     retry_policy {
       maximum_event_age_in_seconds = 86400
       maximum_retry_attempts       = 185
