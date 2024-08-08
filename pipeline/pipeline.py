@@ -12,7 +12,7 @@ logger = logging.getLogger()
 
 
 URL = "https://data-eng-plants-api.herokuapp.com/plants/{}"
-PLANT_IDS = list(range(1, 51))
+PLANT_IDS = list(range(51))
 
 
 async def main() -> dict:
