@@ -13,6 +13,8 @@ COPY transform.py .
 COPY pipeline.py .
 
 EXPOSE 1433
+EXPOSE 80
+EXPOSE 443
 
 ENTRYPOINT ["python3", "pipeline.py"]
 
