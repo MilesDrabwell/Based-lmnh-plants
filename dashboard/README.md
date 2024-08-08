@@ -39,7 +39,7 @@ See [https://excalidraw.com/#json=C3RxBSzgMNaBPaRIav5q2,aHKyiquHU67wbIa11_X9xg]
 - Temperature vs Moisture
 
 ### Historical tab
-- Moisture and Temperature vs time per plant - depends on filters
+- <span style="color:red">Moisture</span> and Temperature vs time per plant - depends on filters
 - (Above and beyond? Add graph for warnings by plant in the history tab)
 
 
