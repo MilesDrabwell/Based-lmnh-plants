@@ -1,11 +1,14 @@
 """Python script to retrieve plant data from the API asynchronously"""
 
 import time
+
 import asyncio
+import logging
+
 from extract import get_api_plant_data, new_plant_ids
 from transform import get_table_data, get_connection
 from load import load
-import logging
+
 
 logger = logging.getLogger()
 

@@ -14,13 +14,13 @@ async def get_api_plant_data(plant_ids: list) -> list[dict]:
         raise TypeError
     plants_data = []
     async with aiohttp.ClientSession() as session:
-        tasks = [session.get(URL.format(plant_id), ssl=False) for plant_id in plant_ids]
+        tasks = [session.get(URL.format(plant_id), ssl=False)
+                 for plant_id in plant_ids]
         responses = await asyncio.gather(*tasks)
 
         for response in responses:
             plant_data = await response.json(content_type=None)
             plants_data.append(plant_data)
-
     return plants_data
 
 
@@ -30,7 +30,9 @@ def new_plant_ids(plants_data: list[dict]) -> list[int]:
     for plant_data in plants_data:
         if plant_data.get("error") != "plant not found":
             plant_ids.append(plant_data.get("plant_id"))
-    plant_ids.append(plant_ids[-1] + 1)
+
+    next_plant_id = plant_ids[-1] + 1
+    plant_ids.append(next_plant_id)
     return plant_ids
 
 
