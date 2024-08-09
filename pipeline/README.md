@@ -19,6 +19,7 @@ These hold private values used to connect to a database and AWS. Both files need
 ```python
 AWS_ACCESS_KEY  = # AWS public key
 AWS_SECRET_KEY = #AWS secret key
+AWS_REGION = #AWS region
 
 DB_HOST = # AWS database endpoint
 DB_PORT = # AWS database port
