@@ -7,19 +7,7 @@ from pymssql import connect
 from pymssql._pymssql import Connection
 
 from extract import get_api_plant_data
-from transform import get_table_data
-
-INITIAL_NUMBER_OF_PLANTS = 51
-
-def get_connection() -> Connection:
-    """Establishing a connection to our RDS"""
-    return connect(
-        host=getenv("DB_HOST"),
-        port=getenv("DB_PORT"),
-        user=getenv("DB_USER"),
-        password=getenv("DB_PASSWORD"),
-        database=getenv("DB_NAME"),
-    )
+from transform import get_table_data, get_connection
 
 
 def insert_license(conn: Connection, license_data: list[tuple]):
@@ -104,4 +92,9 @@ def load(conn: Connection, all_plants: dict[list[tuple]],) -> None:
         insert_plant_health(conn, all_plants["plant_health"])
 
 
-
+if __name__ == "__main__":
+    PLANT_IDS = list(range(51))
+    plants_data = asyncio.run(get_api_plant_data(PLANT_IDS))
+    connection = get_connection()
+    clean_data = get_table_data(plants_data, connection)
+    load(connection, clean_data)
