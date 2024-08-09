@@ -11,10 +11,9 @@ from transform import get_table_data, get_connection
 from load import load
 
 
-
 logger = logging.getLogger()
 
-
+INITIAL_NUMBER_OF_PLANTS = 51
 URL = "https://data-eng-plants-api.herokuapp.com/plants/{}"
 PLANT_IDS = list(range(51))
 

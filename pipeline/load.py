@@ -1,9 +1,6 @@
 """Python script that will load the transformed data to the RDS"""
 
-from os import getenv
-
 import asyncio
-from pymssql import connect
 from pymssql._pymssql import Connection
 
 from extract import get_api_plant_data

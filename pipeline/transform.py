@@ -2,25 +2,32 @@
 Python script to transform data collected ready for upload into the database
 """
 from os import getenv
-import asyncio
 from datetime import datetime
 import pymssql
 from pymssql._pymssql import Connection
+
+# Constants for Origin_location mapping
+LAT = 0
+LONG = 1
+LOCALITY_NAME = 2
+COUNTRY_CODE = 3
+CONTINENT_CITY = 4
+CONTINENT = 0
+CITY = 1
+
+RECORDED_TIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+LAST_WATERED_TIME_FORMAT = "%a, %d %b %Y %H:%M:%S %Z"
 
 
 def check_for_error(plant: dict) -> bool:
     """
     Checks if the current plant dictionary is valid to upload data
     """
-    if plant.get("error"):
-        return False
-    if not isinstance(plant, dict):
+    if plant.get("error") or not isinstance(plant, dict):
         return False
     if plant.get("plant_id") is None or not isinstance(plant.get("plant_id"), int):
         return False
-    if plant.get("plant_id") < 0:
-        return False
-    if not plant.get("recording_taken"):
+    if plant.get("plant_id") < 0 or not plant.get("recording_taken"):
         return False
     return True
 
@@ -64,9 +71,7 @@ def initial_botanist_mapping(plants: list[dict]) -> dict:
     return mapping
 
 
-def get_botanist_data(
-    plant: dict, mapping: dict, initial_mapping: dict
-) -> tuple | None:
+def get_botanist_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple | None:
     """
     Gets all botanist data needed for the botanist database table
     """
@@ -109,8 +114,8 @@ def initial_origin_mapping(plants: list[dict]) -> dict:
     mapping = {}
     for plant in plants:
         if check_for_error(plant):
-            if not mapping.get(plant["origin_location"][2]):
-                mapping[plant["origin_location"][2]] = origin_id
+            if not mapping.get(plant["origin_location"][LOCALITY_NAME]):
+                mapping[plant["origin_location"][LOCALITY_NAME]] = origin_id
                 origin_id += 1
     return mapping
 
@@ -127,18 +132,20 @@ def get_origin_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple 
             return None
         origin_id = max(mapping.values()) + 1
     else:
-        origin_id = initial_mapping.get(plant["origin_location"][2])
-    mapping[plant["origin_location"][2]] = origin_id
-    continent = plant.get("origin_location")[4].split("/")[0]
-    city = plant.get("origin_location")[4].split("/")[1]
+        origin_id = initial_mapping.get(
+            plant["origin_location"][LOCALITY_NAME])
+    mapping[plant["origin_location"][LOCALITY_NAME]] = origin_id
+    continent = plant.get("origin_location")[
+        CONTINENT_CITY].split("/")[CONTINENT]
+    city = plant.get("origin_location")[CONTINENT_CITY].split("/")[CITY]
     return (
         origin_id,
-        float(plant.get("origin_location")[0]),
-        float(plant.get("origin_location")[1]),
-        plant.get("origin_location")[2],
+        float(plant.get("origin_location")[LAT]),
+        float(plant.get("origin_location")[LONG]),
+        plant.get("origin_location")[LOCALITY_NAME],
         continent,
         city,
-        plant.get("origin_location")[3],
+        plant.get("origin_location")[COUNTRY_CODE],
     )
 
 
@@ -259,13 +266,14 @@ def get_plant_data(
         return None
     mapping.append(plant_id)
     if plant.get("origin_location"):
-        origin_location_id = origin_mapping.get(plant["origin_location"][2])
+        origin_location_id = origin_mapping.get(
+            plant["origin_location"][LOCALITY_NAME])
         if not origin_location_id:
             try:
                 origin_location_id = max(origin_mapping.values()) + 1
             except ValueError:
                 origin_location_id = initial_origin_mapping.get(
-                    plant["origin_location"][2]
+                    plant["origin_location"][LOCALITY_NAME]
                 )
     else:
         origin_location_id = None
@@ -308,7 +316,7 @@ def get_health_data(plant: dict) -> tuple:
     """
     try:
         recording_time = datetime.strptime(
-            plant.get("recording_taken"), "%Y-%m-%d %H:%M:%S"
+            plant.get("recording_taken"), RECORDED_TIME_FORMAT
         )
     except ValueError:
         recording_time = None
@@ -316,7 +324,7 @@ def get_health_data(plant: dict) -> tuple:
     temperature = float(plant.get("temperature"))
     try:
         last_watered = datetime.strptime(
-            plant.get("last_watered"), "%a, %d %b %Y %H:%M:%S %Z"
+            plant.get("last_watered"), LAST_WATERED_TIME_FORMAT
         )
     except ValueError:
         last_watered = None
@@ -397,5 +405,6 @@ def get_table_data(plants: list[dict], conn: Connection) -> dict[list[tuple]]:
             plant_health = get_health_data(plant)
             tables_data["plant_health"].append(plant_health)
 
-    tables_data_fixed = {k: list(set(v)) for k, v in tables_data.items()}
+    tables_data_fixed = {table_name: list(
+        set(table_rows)) for table_name, table_rows in tables_data.items()}
     return tables_data_fixed
