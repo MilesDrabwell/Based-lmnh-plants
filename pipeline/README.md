@@ -14,7 +14,7 @@
 
 To run the all files in this folder, you need to also include your own `terraform.tfvars` and `.env` files.
 
-These hold private values used to connect to a database and AWS. Both files need these vales - 
+These hold private values used to connect to a database and AWS. Both files need these values - 
 
 ```python
 AWS_ACCESS_KEY  = # AWS public key
