@@ -368,18 +368,23 @@ def historical_sidebar(connection):
     
     return plants_selected, botanist_selected, continent_selected
 
+def plot_historic_graphs():
+    pass
 
 
 if __name__ == "__main__":
     load_dotenv()
     connection = get_connection()
-    data = filter_data(connection)
-    current_data = data[0]
+    st.title('Welcome to the LMNH Dashboard :seedling:')
+
 
     live_tab, historical_tab = st.tabs(["Live", "Historical"])
-
-    current_data = remove_outliers(current_data)
     with live_tab:
+        data = filter_data(connection)
+        current_data = data[0]
+        on = st.sidebar.toggle('Remove outliers')
+        if on:
+            current_data = remove_outliers(current_data)
         data = data[1]
         faulty_readings = outliers(data)
         display_warnings(faulty_readings)
