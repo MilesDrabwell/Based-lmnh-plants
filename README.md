@@ -71,3 +71,10 @@ to discuss what you would like to change.
 Link to the trello board used for this project.
 
 [Trello](https://trello.com/invite/b/66b09529e948b39b40c0d844/ATTIa0f28bce4764f3e71f9e0ea9cde2b152007BC558/based-lmnh-project)
+
+
+### Dashboard link
+
+Link to the dashboard for this project.
+
+[Dashboard](http://18.130.24.171:8501/)
