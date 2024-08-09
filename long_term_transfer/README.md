@@ -8,6 +8,23 @@
 
 - Also included is all the terraform necessary to deploy to the cloud, the terraform creates the lambda function and schedule on AWS, where the schedule should trigger the lambda function at midnight every day.
 
+### Files you need to include
+
+To run the all files in this folder, you need to also include your own `terraform.tfvars` and `.env` files.
+
+These hold private values used to connect to a database and AWS. Both files need these vales - 
+
+```python
+AWS_ACCESS_KEY  = # AWS public key
+AWS_SECRET_KEY = #AWS secret key
+
+DB_HOST = # AWS database endpoint
+DB_PORT = # AWS database port
+DB_PASSWORD = # AWS database password
+DB_NAME = # AWS database name
+DB_USER # AWS database username
+```
+
 ### How to deploy
 
 - Create an AWS ECR (Elastic container registry).
