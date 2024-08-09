@@ -1,3 +1,4 @@
+# pylint: skip-file
 "Testing the functionality of fetch_data.py"
 from unittest.mock import patch, AsyncMock
 import pytest

@@ -1,3 +1,4 @@
+# pylint: skip-file
 import pytest
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock
