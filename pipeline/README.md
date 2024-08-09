@@ -27,6 +27,9 @@ DB_PASSWORD = # AWS database password
 DB_NAME = # AWS database name
 DB_USER # AWS database username
 ```
+### Initialise Database
+
+Connect to the MSSQL database using the above credentials with an appropriate client such as Azure Data Studio and run the contents of `schema.sql` to reset and create the tables with the intended constraints and primary/foreign key relationships.
 
 ### How to deploy
 
