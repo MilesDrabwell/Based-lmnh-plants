@@ -11,8 +11,8 @@ What we considered testing for in this file:
 
 |Name|Stmts|Miss|Cover|
 |----|----|----|----|
-|fetch_data.py|34|9|74%|
-|test_fetch_data.py|39|2|95%|
+|extract.py|34|9|74%|
+|test_extract.py|39|2|95%|
 |**TOTAL**|73|11|**85%**|
 
 
