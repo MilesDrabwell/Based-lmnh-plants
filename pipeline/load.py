@@ -1,9 +1,8 @@
 """Python script that will load the transformed data to the RDS"""
 
-from os import getenv
 import asyncio
-from pymssql import connect
 from pymssql._pymssql import Connection
+
 from extract import get_api_plant_data
 from transform import get_table_data, get_connection
 
@@ -74,10 +73,7 @@ def insert_plant(conn: Connection, plant_data: list[tuple]):
     conn.commit()
 
 
-def load(
-    conn: Connection,
-    all_plants: dict[list[tuple]],
-) -> None:
+def load(conn: Connection, all_plants: dict[list[tuple]],) -> None:
     """Adding all the data obtained to our RDS"""
     if all_plants.get("license"):
         insert_license(conn, all_plants["license"])

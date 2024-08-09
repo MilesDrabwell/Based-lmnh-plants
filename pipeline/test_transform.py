@@ -1,3 +1,4 @@
+# pylint: skip-file
 import pytest
 from transform import check_for_error, get_botanist_data, get_origin_data, get_license_data, get_images_data, get_plant_data, get_health_data
 
