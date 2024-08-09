@@ -28,7 +28,7 @@ The schema diagram showing the entity relationships between the tables in the da
 
 ![ERD_DIAGRAM](images/ERD_diagram.png)
 
-## Contributors
+## Contributors lmao
 
 This project was developed by the following contributors:
 
