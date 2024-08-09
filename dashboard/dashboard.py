@@ -389,7 +389,6 @@ def historical_sidebar(conn):
     """
     st.sidebar.divider()
     st.sidebar.title('Historical Data Filters')
-    st.sidebar.write('**Time range**')
 
     plant_choices = get_plant_ids(conn)
     plants_selected = st.sidebar.multiselect(
@@ -523,6 +522,13 @@ def dashboard():
         display_live_tab(connection)
 
     with historical_tab:
+        st.subheader('LMNH Plant Historical Data')
+        st.write('The first 12 plots matching the sidebar search filters are shown below:')
+        st.divider()
+        st.write('**Plotting Legend**')
+        st.write(':red_circle: Temperature (°C)')
+        st.write(':large_blue_circle: Soil Moisture (%)')
+
         display_historic_tab(connection)
 
 
