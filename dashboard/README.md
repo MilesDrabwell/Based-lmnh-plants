@@ -7,6 +7,24 @@
 * [x] View graphs of the latest temperature and moisture readings for every plant
 <br>'latest', I assume means latest minute, so this would be updating every minute if you refresh (however, should not be noticeable as the readings change minimally)
 
+# Files you need to include
+
+To run the all files in this folder, you need to also include your own `terraform.tfvars` and `.env` files.
+
+These hold private values used to connect to a database and AWS. Both files need these values - 
+
+```python
+AWS_ACCESS_KEY  = # AWS public key
+AWS_SECRET_KEY = #AWS secret key
+AWS_REGION = #AWS region
+
+DB_HOST = # AWS database endpoint
+DB_PORT = # AWS database port
+DB_PASSWORD = # AWS database password
+DB_NAME = # AWS database name
+DB_USER # AWS database username
+```
+
 # Ideas of what to include:
 
 ## Filters and why:

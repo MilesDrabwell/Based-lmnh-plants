@@ -8,7 +8,7 @@ terraform {
   required_version = ">= 1.2.0"
 }
 provider "aws" {
-  region  = "eu-west-2"
+  region  = var.AWS_REGION
 }
 
 resource "aws_security_group" "dashboard_sg" {
@@ -66,25 +66,25 @@ resource "aws_ecs_task_definition" "dashboard" {
     essential: true
     environment: [
       {name: "SECRET_KEY"
-        value: tostring(var.secret_key)
+        value: tostring(var.AWS_SECRET_KEY)
       },
       {   name: "ACCESS_KEY"
-        value: tostring(var.access_key)
+        value: tostring(var.AWS_ACCESS_KEY)
       },
       {   name: "DB_HOST"
-        value: tostring(var.db_host)
+        value: tostring(var.DB_HOST)
       },
       {   name: "DB_PORT"
-        value: tostring(var.db_port)
+        value: tostring(var.DB_PORT)
       },
       {   name: "DB_PASSWORD"
-        value: tostring(var.db_password)
+        value: tostring(var.DB_PASSWORD)
       },
       {   name: "DB_USER"
-        value: tostring(var.db_user)
+        value: tostring(var.DB_USER)
       },
       {   name: "DB_NAME"
-        value: tostring(var.db_name)
+        value: tostring(var.DB_NAME)
       }
     ]
     logConfiguration: {
