@@ -65,3 +65,9 @@ This project was developed by the following contributors:
 
 Pull requests are welcome. For major changes, please open an issue first
 to discuss what you would like to change.
+
+### Trello Board link
+
+Link to the trello board used for this project.
+
+[Trello](https://trello.com/invite/b/66b09529e948b39b40c0d844/ATTIa0f28bce4764f3e71f9e0ea9cde2b152007BC558/based-lmnh-project)
