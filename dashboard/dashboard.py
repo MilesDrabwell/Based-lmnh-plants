@@ -3,6 +3,7 @@ from os import getenv
 from datetime import datetime, timezone, timedelta
 from math import ceil, floor
 import pymssql
+from pymssql._pymssql import Connection
 import streamlit as st
 import altair as alt
 import pandas as pd
@@ -12,7 +13,7 @@ from get_long_term import get_long_term_data
 
 st.set_page_config(layout="wide")
 
-def get_connection():
+def get_connection() -> Connection:
     """
     Establishes a connection to the database
     """
@@ -26,7 +27,7 @@ def get_connection():
     )
 
 
-def get_botanists(conn):
+def get_botanists(conn: Connection) -> list[str]:
     """
     Obtains all possible botanists' names
     """
@@ -38,18 +39,8 @@ def get_botanists(conn):
     names = [name[0] for name in all_data]
     return names
 
-def get_time_range(conn):
-    """
-    Obtains the time range of all data
-    """
-    query = """SELECT min(recording_time), max(recording_time) FROM alpha.plant_health"""
-    with conn.cursor() as cur:
-        cur.execute(query)
-        all_data = cur.fetchall()
-    conn.commit()
-    return all_data[0]
 
-def get_origin_continent(conn):
+def get_origin_continent(conn: Connection) -> set:
     """
     Obtains all possible continents' names
     """
@@ -61,9 +52,7 @@ def get_origin_continent(conn):
     names = sorted({name[0] for name in all_data})
     return names
 
-def get_plant_ids(conn):
-    #TODO - potentially change to plant name as from a botanist's point of view,
-    # #it maybe more usable - or potentially add option to choose
+def get_plant_ids(conn: Connection) -> set:
     """
     Obtains all possible plant ids
     """
@@ -76,11 +65,10 @@ def get_plant_ids(conn):
     ids.remove(0)
     return ids
 
-def filter_data(conn):
+def filter_data(conn: Connection) -> tuple[pd.DataFrame]:
     """
     Returns only the data that has been filtered based on the options chosen through the sidebar
     """
-    #main query - gets all possible data if no filters
     all_data = """
     WITH all_data AS(
         SELECT b.name, o.continent_name, p.plant_name, ph.recording_time, ph.soil_moisture, ph.temperature, ph.last_watered, ph.plant_id
@@ -88,7 +76,6 @@ def filter_data(conn):
         WHERE b.botanist_id = p.botanist_id AND o.origin_location_id=p.origin_location_id AND ph.plant_id=p.plant_id
         )"""
     data = 'all_data'
-    #filtered by plant id
     plant_choices = get_plant_ids(conn)
     plants_selected = st.sidebar.multiselect(
         "**Filter by Plant ID**", plant_choices)
@@ -105,7 +92,6 @@ def filter_data(conn):
         """
         data = 'plant_data'
 
-    #filtered by botanist
     botanist_choices = get_botanists(conn)
     botanist_selected = st.sidebar.multiselect(
         "**Filter by Botanist**", botanist_choices)
@@ -122,7 +108,6 @@ def filter_data(conn):
         """
         data = 'botanist_data'
 
-    #filtered by continent
     continent_choices = get_origin_continent(conn)
     continent_selected = st.sidebar.multiselect(
         "**Filter by Continent**", continent_choices)
@@ -139,7 +124,6 @@ def filter_data(conn):
         """
         data = 'continent_data'
 
-    # filter by only today's data
     now = str((datetime.now(timezone.utc).strftime('%H.%M')))
     col1, col2 = st.sidebar.columns(2)
     with col1:
@@ -191,30 +175,29 @@ def filter_data(conn):
                                                 'last_watered', 'plant_id'])
     return (live_df, delayed_df)
 
-def filter_graph_range(d_min_s,d_max_s,d_min_t,d_max_t):
+def filter_graph_range(d_min_s: int,d_max_s: int,d_min_t: int,d_max_t: int) -> tuple[int]:
     """
     Display a defined range for the temperature vs moisture graph
     """
     st.sidebar.write('**Soil Moisture range**')
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        s_min = st.number_input("Min %", value=d_min_s)#, min_value=-10, max_value=99)
+        s_min = st.number_input("Min %", value=d_min_s)
     with col2:
-        s_max = st.number_input("Max %", value=d_max_s)#, min_value=1, max_value=110)
+        s_max = st.number_input("Max %", value=d_max_s)
     st.sidebar.write('**Temperature range**')
     col1, col2 = st.sidebar.columns(2)
     with col1:
-        t_min = st.number_input("Min C", value=d_min_t)#, min_value=0, max_value=99)
+        t_min = st.number_input("Min C", value=d_min_t)
     with col2:
-        t_max = st.number_input("Max c", value=d_max_t)#, min_value=1, max_value=100)
-    return(s_min,s_max,t_min,t_max)
+        t_max = st.number_input("Max c", value=d_max_t)
+    return (s_min,s_max,t_min,t_max)
 
-def outliers(data):
+def outliers(data: pd.DataFrame) -> tuple[dict]:
     """
     Finds any values determined as outliers 
     Defined as: moisture < 10 and > 100, temperature < 8 or >18
     """
-    #TODO: change this based on historical data for each specific plant?
     soil_outliers = data[(data['soil_moisture'] < 10) | ((data['soil_moisture'] > 100))]
     soil_errors = {}
     if not soil_outliers.empty:
@@ -229,12 +212,10 @@ def outliers(data):
             temp_errors[p_id] = temp_errors.get(p_id, 0) + 1
     return(temp_errors, soil_errors)
 
-def remove_outliers(data, included=True):
+def remove_outliers(data: pd.DataFrame, included: bool=True) -> tuple[pd.DataFrame, int, int, int, int]:
     """
     Removes outliers if they are more than 1.5 IQR away from the IQR
     """
-    #TODO: either explain why this decision was made or change it to a
-    # #different metric and explain why
     if included:
         s_min = int(floor(min(data['soil_moisture'])))
         s_max = int(ceil(max(data['soil_moisture'])))
@@ -258,12 +239,9 @@ def remove_outliers(data, included=True):
         s_max = int(ceil(max(data['soil_moisture'])))
         t_min = int(floor(min(data['temperature'])))
         t_max = int(ceil(max(data['temperature'])))
-    # replace outliers with median value
-    # data.loc[z > threshold, 'Height'] = df['Height'].median()
-    return (data, s_min,s_max,t_min,t_max)
+    return (data, s_min-1,s_max+1,t_min-1,t_max+1)
 
-# To be displayed
-def temp_vs_moist(data:pd.DataFrame, s_min,s_max,t_min,t_max) -> alt.Chart:
+def temp_vs_moist(data:pd.DataFrame, s_min: int,s_max: int,t_min:int, t_max:int) -> alt.Chart:
     """
     Scatter graph showing the relationship between temperature and soil moisture
     """
@@ -278,16 +256,10 @@ def temp_vs_moist(data:pd.DataFrame, s_min,s_max,t_min,t_max) -> alt.Chart:
     band2 = alt.Chart(data).mark_errorband(extent="stdev", opacity=0.1, borders=True).encode(
     alt.X("temperature:Q", title=''))
 
-    rule1 = alt.Chart(data).mark_rule(opacity=0.3, stroke='green', strokeWidth=4).encode(
-    y='mean(soil_moisture):Q')
-
-    # rule2 = alt.Chart(data).mark_rule(opacity=0.3, stroke='red').encode(
-    # y='mean(soil_moisture):Q')
-
-    moist_temp = moist_temp+band1+band2#+rule1#+rule2
+    moist_temp = moist_temp+band1+band2
     return moist_temp.configure_axis(gridColor='grey')
 
-def warnings(temp=None, soil=None):
+def warnings(temp:bool=None, soil:bool=None) -> None:
     """
     Displays warnings for any plants that need attention
     Has these as a list with checkboxes so that you can keep track of which plants you have checked
@@ -301,11 +273,10 @@ def warnings(temp=None, soil=None):
             st.markdown(f"""**Plant {s} has a low soil moisture**""", help='\\< 20%')
         st.divider()
 
-def display_warnings(data):
+def display_warnings(data: pd.DataFrame) -> None:
     """
     Shows the ID of any outlier if they have occurred > 3 times in the last 10 minutes
     """
-    #TODO: either explain why these values or change them
     temp_fault = data[0]
     soil_fault = data[1]
     bad_temp = []
@@ -323,8 +294,7 @@ def display_warnings(data):
 #linfan woz ere
 #HI :)))))
 
-# Filters for historical data
-def get_botanists_mapping(conn):
+def get_botanists_mapping(conn: Connection) -> dict:
     """
     Obtains botanist mapping
     """
@@ -336,7 +306,7 @@ def get_botanists_mapping(conn):
     botanists = {row["botanist_id"]: row["name"] for row in rows}
     return botanists
 
-def get_origin_continent_mapping(conn):
+def get_origin_continent_mapping(conn: Connection) -> dict:
     """
     Obtains continent mapping
     """
@@ -348,7 +318,7 @@ def get_origin_continent_mapping(conn):
     continents = {row["origin_location_id"]: row["continent_name"] for row in rows}
     return continents
 
-def get_plant_mapping(conn):
+def get_plant_mapping(conn: Connection) -> dict:
     """
     Obtains mapping for primary and foreign keys in plant table
     """
@@ -360,7 +330,7 @@ def get_plant_mapping(conn):
     df = pd.DataFrame(data, columns=['plant_id', 'botanist_id', 'origin_location_id'])
     return df
 
-def historical_join_mappings(df_historical, df_mapping):
+def historical_join_mappings(df_historical: pd.DataFrame, df_mapping:  pd.DataFrame) -> pd.DataFrame:
     """
     Joins historical data with botanists and continents
     """
@@ -370,7 +340,7 @@ def historical_join_mappings(df_historical, df_mapping):
     df = df.rename(columns={'botanist_id': 'name', 'origin_location_id': 'continent_name'})
     return df
 
-def graph_numbers_in_column(number_of_graphs, column_number):
+def graph_numbers_in_column(number_of_graphs: int, column_number: int) -> list[int]:
     """
     Finds the graph indices that should be plotted in a given column index
     """
@@ -383,13 +353,12 @@ def graph_numbers_in_column(number_of_graphs, column_number):
             graph_numbers.append(n)
     return graph_numbers
 
-def historical_sidebar(conn):
+def historical_sidebar(conn: Connection) -> tuple[list]:
     """
     Adds filters for the sidebar for historic dataset
     """
     st.sidebar.divider()
     st.sidebar.title('Historical Data Filters')
-    st.sidebar.write('**Time range**')
 
     plant_choices = get_plant_ids(conn)
     plants_selected = st.sidebar.multiselect(
@@ -413,7 +382,7 @@ def historical_sidebar(conn):
 
     return plants_selected, botanist_selected, continent_selected
 
-def plot_historic_graphs(df: pd.DataFrame):
+def plot_historic_graphs(df: pd.DataFrame) -> alt.Chart:
     """
     Line graph of soil moisture and temperature over time
     """
@@ -441,8 +410,7 @@ def plot_historic_graphs(df: pd.DataFrame):
     ).resolve_scale(y='independent')
 
 
-#Layout functions
-def display_live_tab(conn):
+def display_live_tab(conn: Connection) -> None:
     """
     Combining everything that will belong to the live tab
     """
@@ -460,11 +428,6 @@ def display_live_tab(conn):
     data = data[1]
     faulty_readings = outliers(data)
     display_warnings(faulty_readings)
-
-    # col1, col2 = st.columns([1,2])
-    # with col1:
-    #     st.write('')
-    # with col2:
     st.markdown(
     """
     <span style="font-size:2em;"><b>Plant Moisture and Temperature</b></span>
@@ -478,7 +441,7 @@ def display_live_tab(conn):
     st.altair_chart(graph, use_container_width=True)
 
 
-def display_historic_tab(conn):
+def display_historic_tab(conn: Connection) -> None:
     """
     Combining everything that will belong to the historical tab
     """
@@ -510,7 +473,7 @@ def display_historic_tab(conn):
                     st.altair_chart(graph, use_container_width=True)
 
 
-def dashboard():
+def dashboard() -> None:
     """
     Main function to display the dashboard
     """
@@ -523,6 +486,13 @@ def dashboard():
         display_live_tab(connection)
 
     with historical_tab:
+        st.subheader('LMNH Plant Historical Data')
+        st.write('The first 12 plots matching the sidebar search filters are shown below:')
+        st.divider()
+        st.write('**Plotting Legend**')
+        st.write(':red_circle: Temperature (°C)')
+        st.write(':large_blue_circle: Soil Moisture (%)')
+
         display_historic_tab(connection)
 
 
