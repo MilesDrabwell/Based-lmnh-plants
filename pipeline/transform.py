@@ -6,7 +6,6 @@ import asyncio
 from datetime import datetime
 import pymssql
 from pymssql._pymssql import Connection
-from extract import get_api_plant_data
 
 
 def check_for_error(plant: dict) -> bool:
@@ -47,7 +46,6 @@ def get_botanist_mapping(conn: Connection) -> dict:
     with conn.cursor(as_dict=True) as curs:
         curs.execute("SELECT name, botanist_id FROM alpha.botanist")
         rows = curs.fetchall()
-        # logging.info('Created a mapping for "botanist" values')
     return {row["name"]: row["botanist_id"] for row in rows}
 
 
@@ -99,7 +97,6 @@ def get_origin_mapping(conn: Connection) -> dict:
             "SELECT locality_name, origin_location_id FROM alpha.origin_location"
         )
         rows = curs.fetchall()
-        # logging.info('Created a mapping for "origin" values')
     return {row["locality_name"]: row["origin_location_id"] for row in rows}
 
 
@@ -129,7 +126,6 @@ def get_origin_data(plant: dict, mapping: dict, initial_mapping: dict) -> tuple 
             return None
         origin_id = max(mapping.values()) + 1
     else:
-        # print(plant["origin_location"])
         origin_id = initial_mapping.get(plant["origin_location"][2])
     mapping[plant["origin_location"][2]] = origin_id
     continent = plant.get("origin_location")[4].split("/")[0]
@@ -153,7 +149,6 @@ def get_license_mapping(conn: Connection) -> dict:
     with conn.cursor(as_dict=True) as curs:
         curs.execute("SELECT license_name, license_id FROM alpha.license")
         rows = curs.fetchall()
-        # logging.info('Created a mapping for "license" values')
     return {row["license_name"]: row["license_id"] for row in rows}
 
 
@@ -183,7 +178,6 @@ def get_images_mapping(conn: Connection) -> dict:
     with conn.cursor(as_dict=True) as curs:
         curs.execute("SELECT regular_url, image_id FROM alpha.images")
         rows = curs.fetchall()
-        # logging.info('Created a mapping for "license" values')
     return {row["regular_url"]: row["image_id"] for row in rows}
 
 
@@ -241,7 +235,6 @@ def get_plant_mapping(conn: Connection) -> list:
     with conn.cursor(as_dict=True) as curs:
         curs.execute("SELECT plant_name, plant_id FROM alpha.plant")
         rows = curs.fetchall()
-        # logging.info('Created a mapping for "license" values')
     return [row["plant_id"] for row in rows]
 
 
@@ -405,10 +398,3 @@ def get_table_data(plants: list[dict], conn: Connection) -> dict[list[tuple]]:
 
     tables_data_fixed = {k: list(set(v)) for k, v in tables_data.items()}
     return tables_data_fixed
-
-
-if __name__ == "__main__":
-    PLANT_IDS = list(range(51))
-    plants_data = asyncio.run(get_api_plant_data(PLANT_IDS))
-    db_conn = get_connection()
-    get_table_data(plants_data, db_conn)

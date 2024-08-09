@@ -3,9 +3,9 @@
 import asyncio
 import aiohttp
 
-
+INITIAL_NUMBER_OF_PLANTS = 51
 URL = "https://data-eng-plants-api.herokuapp.com/plants/{}"
-PLANT_IDS = list(range(51))
+PLANT_IDS = list(range(INITIAL_NUMBER_OF_PLANTS))
 
 
 async def get_api_plant_data(plant_ids: list) -> list[dict]:
@@ -14,7 +14,8 @@ async def get_api_plant_data(plant_ids: list) -> list[dict]:
         raise TypeError
     plants_data = []
     async with aiohttp.ClientSession() as session:
-        tasks = [session.get(URL.format(plant_id), ssl=False) for plant_id in plant_ids]
+        tasks = [session.get(URL.format(plant_id), ssl=False)
+                 for plant_id in plant_ids]
         responses = await asyncio.gather(*tasks)
 
         for response in responses:
@@ -32,7 +33,3 @@ def new_plant_ids(plants_data: list[dict]) -> list[int]:
             plant_ids.append(plant_data.get("plant_id"))
     plant_ids.append(plant_ids[-1] + 1)
     return plant_ids
-
-
-if __name__ == "__main__":
-    print(asyncio.run(get_api_plant_data(PLANT_IDS)))
