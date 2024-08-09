@@ -37,9 +37,10 @@ def combine_transaction_data_files(filenames: list[str]) -> pd.DataFrame:
         df = pd.concat([df, parquet], ignore_index=True)
     return df
 
-
-
-if __name__ == "__main__":
+def get_long_term_data() -> pd.DataFrame:
     client = get_client()
     filenames = get_file_names(client, BUCKET_NAME)
-    print(combine_transaction_data_files(filenames))
+    return combine_transaction_data_files(filenames)
+
+if __name__ == "__main__":
+    get_long_term_data()

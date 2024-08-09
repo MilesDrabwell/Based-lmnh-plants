@@ -6,7 +6,10 @@ import altair as alt
 import pandas as pd
 import numpy as np
 from dotenv import load_dotenv
+from math import ceil, floor
+from get_long_term import get_long_term_data
 
+st.set_page_config(layout="wide")
 #establish a connection
 def get_connection():
     """
@@ -72,7 +75,7 @@ def filter_data(conn):
         WHERE b.botanist_id = p.botanist_id AND o.origin_location_id=p.origin_location_id AND ph.plant_id=p.plant_id
         )"""
     data = 'all_data'
-
+    st.sidebar.title('Live Data Filters')
     #filtered by plant id
     plant_choices = get_plant_ids(connection)
     plants_selected = st.sidebar.multiselect(
@@ -93,7 +96,7 @@ def filter_data(conn):
     #filtered by botanist
     botanist_choices = get_botanists(conn)
     botanist_selected = st.sidebar.multiselect(
-        "**Filter by] Botanist**", botanist_choices)
+        "**Filter by Botanist**", botanist_choices)
     if botanist_selected:
         if len(botanist_selected) == 1:
             botanist_selected = f"('{botanist_selected[0]}')"
@@ -282,6 +285,91 @@ def display_warnings(data):
                 bad_soil.append(element)
     warnings(bad_temp, bad_soil)
 
+#linfan woz ere
+
+def get_botanists_mapping(conn):
+    """Obtains botanist mapping"""
+    query = """SELECT botanist_id, name FROM alpha.botanist"""
+    with conn.cursor(as_dict=True) as cur:
+        cur.execute(query)
+        rows= cur.fetchall()
+    conn.commit()
+    botanists = {row["botanist_id"]: row["name"] for row in rows}
+    return botanists
+
+def get_origin_continent_mapping(conn):
+    """Obtains continent mapping"""
+    query = """SELECT origin_location_id, continent_name FROM alpha.origin_location"""
+    with conn.cursor(as_dict=True) as cur:
+        cur.execute(query)
+        rows= cur.fetchall()
+    conn.commit()
+    continents = {row["origin_location_id"]: row["continent_name"] for row in rows}
+    return continents
+
+def get_plant_mapping(conn):
+    """Obtains botanist mapping"""
+    query = """SELECT plant_id, botanist_id, origin_location_id FROM alpha.plant"""
+    with conn.cursor() as cur:
+        cur.execute(query)
+        data= cur.fetchall()
+    conn.commit()
+    df = pd.DataFrame(data, columns=['plant_id', 'botanist_id', 'origin_location_id'])
+    return df
+
+
+
+
+
+def historical_join_mappings(df_historical, df_mapping):
+    """Joins historical data with botanists and continents"""
+    df = pd.merge(df_historical, df_mapping, how='inner', on='plant_id')
+    df = df.replace({"botanist_id": get_botanists_mapping(get_connection())})
+    df = df.replace({"origin_location_id": get_origin_continent_mapping(get_connection())})
+    df = df.rename(columns={'botanist_id': 'name', 'origin_location_id': 'continent_name'})
+    return df
+
+
+def graph_numbers_in_column(number_of_graphs, column_number):
+    number_of_columns = floor(number_of_graphs**0.5)
+    number_of_rows = ceil(number_of_graphs / number_of_columns)
+    graph_numbers = []
+    for r in range(1, number_of_rows + 1):
+        n = (r - 1) * number_of_columns + column_number
+        if n <= number_of_graphs:
+            graph_numbers.append(n)
+    return graph_numbers
+
+
+def historical_sidebar(connection):
+    st.sidebar.divider()
+    st.sidebar.title('Historical Data Filters')
+    st.sidebar.write('**Time range**')
+    
+    plant_choices = get_plant_ids(connection)
+    plants_selected = st.sidebar.multiselect(
+        "**Filter historical by Plant ID**", plant_choices, key = "plant_hist")
+    if not plants_selected:
+        plants_selected = plant_choices
+    
+
+    botanist_choices = get_botanists(connection)
+    botanist_selected = st.sidebar.multiselect(
+        "**Filter historical by Botanist**", botanist_choices ,key = "bot_hist")
+    if not botanist_selected:
+        botanist_selected = botanist_choices
+
+
+    continent_choices = get_origin_continent(connection)
+    continent_selected = st.sidebar.multiselect(
+        "**Filter historical by Continent**", continent_choices, key = "cont_hist")
+    if not continent_selected:
+        continent_selected = continent_choices
+    
+    return plants_selected, botanist_selected, continent_selected
+
+
+
 if __name__ == "__main__":
     load_dotenv()
     connection = get_connection()
@@ -308,3 +396,39 @@ if __name__ == "__main__":
 
         #consider:https://altair-viz.github.io/gallery/multiline_highlight.html
         #also: altair has interpolation if we want to add eg an average line
+    
+
+    old_data = historical_sidebar(connection)
+
+    with historical_tab:
+        plants_selected, botanist_selected, continent_selected = old_data[0], old_data[1], old_data[2]
+        df = historical_join_mappings(get_long_term_data(), get_plant_mapping(connection))
+        filtered_df = df[(df['plant_id'].isin(plants_selected)) & 
+                    (df['name'].isin(botanist_selected)) & 
+                    (df['continent_name'].isin(continent_selected))]
+        print(filtered_df)
+
+
+        print(sorted(filtered_df['plant_id'].unique()))
+        plants_df_list = []
+        for plant in sorted(filtered_df['plant_id'].unique()):
+            if len(plants_df_list) < 12:
+                plants_df_list.append(filtered_df[filtered_df['plant_id']==plant])
+            else:
+                break
+        
+        number_of_columns = floor(len(plants_df_list)**0.5)
+        
+        if number_of_columns > 0:
+            cols = st.columns(number_of_columns)
+            for col in range(number_of_columns):
+                with cols[col]:
+                    nums= graph_numbers_in_column(len(plants_df_list), col+1)
+                    print(nums)
+                    for num in nums:
+                        df_hist = plants_df_list[num-1]
+                        st.write('')
+                        graph = temp_vs_moist(df_hist, min_s, max_s, min_t, max_t)
+                        st.altair_chart(graph, use_container_width=True)
+
+    # print(historical_join_mappings(get_long_term_data(), get_plant_mapping(connection)).head())
