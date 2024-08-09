@@ -6,9 +6,7 @@ import pymssql
 import streamlit as st
 import altair as alt
 import pandas as pd
-import numpy as np
 from dotenv import load_dotenv
-from scipy import stats
 from get_long_term import get_long_term_data
 
 
@@ -220,13 +218,13 @@ def outliers(data):
     soil_outliers = data[(data['soil_moisture'] < 10) | ((data['soil_moisture'] > 100))]
     soil_errors = {}
     if not soil_outliers.empty:
-        for i, val in soil_outliers.iterrows():
+        for _, val in soil_outliers.iterrows():
             p_id = val['plant_id']
             soil_errors[p_id] = soil_errors.get(p_id, 0) + 1
     temp_outliers = data[(data['temperature'] < 8) | (data['temperature'] > 18)]
     temp_errors = {}
     if not temp_outliers.empty:
-        for i, val in temp_outliers.iterrows():
+        for _, val in temp_outliers.iterrows():
             p_id = val['plant_id']
             temp_errors[p_id] = temp_errors.get(p_id, 0) + 1
     return(temp_errors, soil_errors)
@@ -352,7 +350,7 @@ def get_origin_continent_mapping(conn):
 
 def get_plant_mapping(conn):
     """
-    Obtains botanist mapping
+    Obtains mapping for primary and foreign keys in plant table
     """
     query = """SELECT plant_id, botanist_id, origin_location_id FROM alpha.plant"""
     with conn.cursor() as cur:
@@ -374,9 +372,8 @@ def historical_join_mappings(df_historical, df_mapping):
 
 def graph_numbers_in_column(number_of_graphs, column_number):
     """
-    Finds the amount of columns to be displayed based on the amount of filters and graphs requests
+    Finds the graph indices that should be plotted in a given column index
     """
-    #TODO: this was a guess - maybe change the docstring if it's wrong
     number_of_columns = floor(number_of_graphs**0.5)
     number_of_rows = ceil(number_of_graphs / number_of_columns)
     graph_numbers = []
@@ -388,9 +385,8 @@ def graph_numbers_in_column(number_of_graphs, column_number):
 
 def historical_sidebar(conn):
     """
-    Adds filters for the sidebar - separate to the live ones as different data is being displayed?
+    Adds filters for the sidebar for historic dataset
     """
-    #TODO: double-check docstring
     st.sidebar.divider()
     st.sidebar.title('Historical Data Filters')
     st.sidebar.write('**Time range**')
@@ -417,25 +413,19 @@ def historical_sidebar(conn):
 
     return plants_selected, botanist_selected, continent_selected
 
-def plot_historic_graphs(df: pd.DataFrame, filter_outliers: bool):
+def plot_historic_graphs(df: pd.DataFrame):
     """
     Line graph of soil moisture and temperature over time
     """
-    
-    if filter_outliers:
-        df = df.copy()
 
-        
-        soil_moisture_z = np.abs(stats.zscore(df['soil_moisture']))
-        temperature_z = np.abs(stats.zscore(df['temperature']))
-
-        
-        df['soil_moisture'] = df['soil_moisture'].mask(soil_moisture_z < 2)
-        df['temperature'] = df['temperature'].mask(temperature_z < 2)
     source = df
 
     chart_base = alt.Chart(source).encode(
-        x=alt.X('recording_time:T', axis=alt.Axis(title='Recording Time'), scale=alt.Scale(zero=False))
+    x=alt.X(
+        'recording_time:T', 
+        axis=alt.Axis(title='Recording Time'),
+        scale=alt.Scale(zero=False)
+        )
     )
 
     soil_moisture_line = chart_base.mark_line(color='blue', size=1,point=True).encode(
@@ -475,8 +465,13 @@ def display_live_tab(conn):
     # with col1:
     #     st.write('')
     # with col2:
-    st.markdown("""<span style="font-size:2em;"><b>         Plant Moisture and Temperature</b></span>""",
-                     unsafe_allow_html=True, help='of all plants - recorded in the last minute')
+    st.markdown(
+    """
+    <span style="font-size:2em;"><b>Plant Moisture and Temperature</b></span>
+    """,
+    unsafe_allow_html=True,
+    help='of all plants - recorded in the last minute'
+    )
     st.write('')
     (min_s,max_s,min_t,max_t) = filter_graph_range(def_min_s,def_max_s,def_min_t,def_max_t)
     graph = temp_vs_moist(current_data, min_s,max_s,min_t,max_t)
@@ -484,8 +479,10 @@ def display_live_tab(conn):
 
 
 def display_historic_tab(conn):
+    """
+    Combining everything that will belong to the historical tab
+    """
     old_data = historical_sidebar(conn)
-    on = st.sidebar.toggle('Remove Outliers', value =False)
     plants_selected, botanist_selected, continent_selected=old_data[0], old_data[1], old_data[2]
     df = historical_join_mappings(get_long_term_data(), get_plant_mapping(conn))
     filtered_df = df[(df['plant_id'].isin(plants_selected)) &
@@ -509,14 +506,17 @@ def display_historic_tab(conn):
                 for num in nums:
                     df_hist = plants_df_list[num-1]
                     st.write('')
-                    graph = plot_historic_graphs(df_hist, on)
+                    graph = plot_historic_graphs(df_hist)
                     st.altair_chart(graph, use_container_width=True)
 
 
 def dashboard():
+    """
+    Main function to display the dashboard
+    """
     load_dotenv()
     connection = get_connection()
-    
+
     st.title('LMNH Plant Environment Monitoring :seedling:')
     live_tab, historical_tab = st.tabs(["Live", "Historical"])
     with live_tab:
@@ -524,8 +524,7 @@ def dashboard():
 
     with historical_tab:
         display_historic_tab(connection)
-    
+
 
 if __name__ == "__main__":
-    load_dotenv()
     dashboard()

@@ -1,27 +1,31 @@
-variable "access_key" {
-  default = ""
+variable "AWS_ACCESS_KEY" {
+  type = string
 }
 
-variable "secret_key" {
-  default = ""
+variable "AWS_SECRET_KEY" {
+  type = string
 }
 
-variable "db_host" {
-  default = ""
+variable "AWS_REGION" {
+  type = string
 }
 
-variable "db_port" {
-  default = ""
+variable "DB_HOST" {
+  type = string
 }
 
-variable "db_password" {
-  default = ""
+variable "DB_NAME" {
+  type = string
 }
 
-variable "db_user" {
-  default = ""
+variable "DB_PASSWORD" {
+  type = string
 }
 
-variable "db_name" {
-  default = ""
+variable "DB_PORT" {
+  type = string
+}
+
+variable "DB_USER" {
+  type = string
 }
