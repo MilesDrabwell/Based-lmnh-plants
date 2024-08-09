@@ -23,7 +23,8 @@ def get_connection():
         user=getenv("DB_USER"),
         password=getenv("DB_PASSWORD"),
         database=getenv("DB_NAME"),
-        port=getenv("DB_PORT")
+        port=getenv("DB_PORT"),
+        tds_version="7.0",
     )
 
 
